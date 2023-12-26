@@ -244,7 +244,7 @@ end
 ---@return string? message contains the error message if there was one
 ---@return string? humMessage contains the message to display to the user in event of error, if there is one
 function handler.addTileset(path, displayName, copy, sound, ignores,templateInfo,mask,foreground,xmlTarget)
-    local target,msg = io.open(xmlTarget, "w")
+    local target ,msg = io.open(xmlTarget, "w")
 
     if not target then
         return false, msg,"Cannot add tileset due to filesystem error"
@@ -387,16 +387,16 @@ end
 ---@return string? error
 ---@return string? humMessage
 function handler.removeTileset(name, foreground,xmlTarget)
-    local target,msg = io.open(xmlTarget, "w")
+    local target ,msg = io.open(xmlTarget, "w")
+    
     if not target then
         return false, msg, "Cannot remove tileset due to fileSystem error"
     end
-
     local tileXml= (foreground and handler.fgXml) or handler.bgXml
     local tilesets = foreground and handler.fgTilesets or handler.bgTilesets
     if tilesets[name].used and tilesets[name].used> 0 then
-        target:close()
         local msg = string.format("Can't remove %s because it is being used as a template",name)
+        target:close()
         return false, msg, "Can't remove tileset being used as a template"
     end
     local out = tilesets[name]
@@ -436,10 +436,11 @@ end
 ---@param xmlTarget string the path to the xml to edit
 ---@return boolean success
 ---@return string? error
+---@return string? humMessage
 function handler.editTileset(name, foreground,sound, ignores, copyMask, template, customMask, xmlTarget)
     local target,msg = io.open(xmlTarget, "w")
     if not target then
-        return false, msg
+        return false, msg, "Cannot edit tileset due to filesystem error"
     end
     local tilesets = (foreground and handler.fgTilesets) or handler.bgTilesets
     local xml = (foreground and handler.fgXml) or handler.bgXml
