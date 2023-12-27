@@ -137,11 +137,6 @@ function contextWindow.createContextMenu(scriptHandler, callbackOnAccept, contex
             callback = function(formFields)
                 local formData = form.getFormData(formFields)
                 callbackOnAccept(scriptHandler, formData, contextTable)
-
-                -- make sure that parameter values persist between script usages
-                for k,v in pairs(formData) do
-                    scriptHandler.parameters[k] = v
-                end
                 callbackOnClose()
                 removeWindow(window)
             end
