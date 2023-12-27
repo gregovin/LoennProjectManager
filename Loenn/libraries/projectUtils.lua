@@ -4,10 +4,7 @@ local logging = require("logging")
 local fileLocations = require("file_locations")
 local settings = mods.requireFromPlugin("libraries.settings")
 local utils = require("utils")
-local lfs = require("lib.lfs_ffi")
-local ffi = require "ffi"
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
-local osUtils = require("utils.os")
 
 
 local pUtils = {}
@@ -26,9 +23,8 @@ end
 ---A helper function which gets an location inside this mod as an absolute path
 ---@param alternate string the relative path from the root of this mod to the file
 ---@return string path the absolute path to the desired item
-function pUtils.getInnerXmlLocation(alternate)
-    local info,metadata=mods.findLoadedMod(mods.getCurrentModName())
-    return fileSystem.joinpath(metadata._path,alternate)
+function pUtils.getInnerXml(alternate)
+    return mods.readFromPlugin(alternate)
 end
 ---A helper function to get an xml string from a desired xml or its alternate if not present
 ---@param location string the relative path to the xml location from the mod root
@@ -43,9 +39,8 @@ function pUtils.getXmlString(location, projectDetails,alternate)
         if out then return out end
         logging.warning("Failed to read tilesets.xml, attempting backup")
     end
-    local xmlpath=pUtils.getInnerXmlLocation(alternate)
-    logging.info(string.format("Reading tilesets.xml at %s",xmlpath))
-    local out = utils.readAll(xmlpath,"rb")
+    logging.info(string.format("Reading default xml at %s",alternate))
+    local out=pUtils.getInnerXml(alternate)
     if out then return out end
     error("Could not read tilesets.xml",2)
 end

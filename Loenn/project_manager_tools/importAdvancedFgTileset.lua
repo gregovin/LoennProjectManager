@@ -143,7 +143,7 @@ function script.run(args)
     end
     local addTileset = function()
         local success, logMessage,displayMessage = tilesetHandler.addTileset(path,args.name,copyMask,args.sound,pUtils.setAsList(args.ignores),templateInfo,args.customMask,true,target)
-        if not success then logging.warning(logMessage) end
+        if not success then logging.warning("failed to write to %s due to the following error:\n%s",target,logMessage) end
         celesteRenderer.loadCustomTilesetAutotiler(state)
         return success,string.format("Failed to add tileset: %s",displayMessage)
     end
@@ -194,7 +194,9 @@ function script.run(args)
         state.side.meta = state.side.meta or {}
         state.side.meta.ForegroundTiles=diffp
         settings.set("foregroundTilesXml",diffp,"recentProjectInfo")
-        notifications.notify("Save and restart loenn to load your tileset")
+        if not state.side.meta.BackgroundTiles then
+            notifications.notify("Save and restart loenn to load your tileset")
+        end
     end
     celesteRenderer.loadCustomTilesetAutotiler(state)
     snap2.data.success=success

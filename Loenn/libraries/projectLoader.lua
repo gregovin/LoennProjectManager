@@ -137,7 +137,9 @@ function loaders.loadMetadataDetails(projectDetails)
     loaders.assertStateValid(projectDetails)
     local mapData = state.side
     local foregroundTilesXml = (mapData.meta and mapData.meta.ForegroundTiles)
+    logging.info(string.format("Foreground: %s",foregroundTilesXml))
     local backgroundTilesXml = (mapData.meta and mapData.meta.BackgroundTiles)
+    logging.info(string.format("Background: %s",backgroundTilesXml))
     local animatedTilesXml = (mapData.meta and mapData.meta.AnimatedTiles)
     --process xmls
     local foregroundTilestring = p_utils.getXmlString(foregroundTilesXml,projectDetails,"xmls/ForegroundTiles.xml")

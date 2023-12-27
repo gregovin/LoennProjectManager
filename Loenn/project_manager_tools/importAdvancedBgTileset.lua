@@ -191,7 +191,9 @@ function script.run(args)
         state.side.meta = state.side.meta or {}
         state.side.meta.BackgroundTiles=diffp
         settings.set("backgroundTilesXml",diffp,"recentProjectInfo")
-        notifications.notify("Save and restart loenn to load your tileset") 
+        if not state.side.meta.ForegroundTiles then
+            notifications.notify("Save and restart loenn to load your tileset")
+        end
     end
     celesteRenderer.loadCustomTilesetAutotiler(state)
     snap2.data.success=success
