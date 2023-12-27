@@ -102,6 +102,7 @@ function handler.clearTilesetCache()
     settings.set("foregroundTilesXml",nil,"recentProjectInfo")
     settings.set("backgroundTilesXml",nil,"recentProjectInfo")
     settings.set("animatedTilesets",nil,"recentProjectInfo")
+    handler.tpath =nil
     ids_used={"\"","&","'","<",">"} 
 end
 ---get the tileset table relevant for the value of foreground
@@ -137,6 +138,7 @@ function handler.processTilesetXml(xmlString,foreground)
     ---parse the xml!
     local xhandler=xmlHandler:new()
     local parser = xml2lua.parser(xhandler)
+    local folders = {}
     local xml = utils.stripByteOrderMark(xmlString)
     parser:parse(xml)
     ---prepare some tables and store the xml
@@ -155,6 +157,10 @@ function handler.processTilesetXml(xmlString,foreground)
         local copy = element._attr.copy
         local ignores = element._attr.ignores or ""
         local path= element._attr.path
+        local folder = string.match(path,"(.*/)")
+        if folder then
+            folders[folder]=true 
+        end
         local displayName = element._attr.displayName
         local sound = element._attr.sound
         local templateInfo = element._attr.templateInfo
@@ -213,6 +219,11 @@ function handler.processTilesetXml(xmlString,foreground)
                 target.templateInfo=t_name
             end
         end
+    end
+    --pick a folder we saw as a place to store tilesets
+    local potentials=projectUtils.setAsList(folders)
+    if #potentials>0 then
+        handler.tpath =potentials[1]
     end
     --store the tilesets and templates we found in the right place
     if foreground then
