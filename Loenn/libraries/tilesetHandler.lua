@@ -200,11 +200,17 @@ function handler.processTilesetXml(xmlString,foreground)
             target.used = (target.used and target.used+1) or 1
             if not target.templateInfo then
                 local t_name= string.format("%s(%s)",target.id,targetName)
+                if target.id == "z" then 
+                    t_name = "Vanilla"
+                elseif target.id == "9" then
+                    t_name = "Wood(Vanilla)"
+                end
                 templates[t_name] = {
                     name=targetName,
                     id=target.id,
                     masks=target.masks
                 }
+                target.templateInfo=t_name
             end
         end
     end
@@ -244,11 +250,7 @@ end
 ---@return string? message contains the error message if there was one
 ---@return string? humMessage contains the message to display to the user in event of error, if there is one
 function handler.addTileset(path, displayName, copy, sound, ignores,templateInfo,mask,foreground,xmlTarget)
-    local target ,msg = io.open(xmlTarget, "w")
-
-    if not target then
-        return false, msg,"Cannot add tileset due to filesystem error"
-    end
+    
     local tileXml= (foreground and handler.fgXml) or handler.bgXml
     local id = generateTilesetId()
     local newTileset = {
@@ -281,11 +283,9 @@ function handler.addTileset(path, displayName, copy, sound, ignores,templateInfo
         tilesets[name].copy = copy
         local ctilset = tilesets[dict[copy]]
         if not ctilset then
-            target:close()
             return false, string.format("Tileset %s attempted to copy id %s, but that id does not exist",name,copy),"Cannot copy non-existant tileset"
         end
         if not ctilset.templateInfo then
-            target:close()
             return false, string.format("Tileset %s attempted to copy a non-template tileseet %s",name,dict[copy]),"Cannot copy non-template tileset"
         end
         ctilset.used = (ctilset.used and ctilset.used+1) or 1
@@ -314,9 +314,16 @@ function handler.addTileset(path, displayName, copy, sound, ignores,templateInfo
             masks=mask
         }
     end
+    local target ,msg = io.open(xmlTarget, "w")
+
+    if not target then
+        tilesets[name] = nil
+        return false, msg,"Cannot add tileset due to filesystem error"
+    end
     table.insert(tileXml.Data.Tileset,newTileset)
     local outstring= xmlWriter.toXml(tileXml)
     outstring=fixWierdXml(outstring)
+    
     target:write(outstring)
     target:close()
     return true
@@ -387,17 +394,17 @@ end
 ---@return string? error
 ---@return string? humMessage
 function handler.removeTileset(name, foreground,xmlTarget)
-    local target ,msg = io.open(xmlTarget, "w")
     
-    if not target then
-        return false, msg, "Cannot remove tileset due to fileSystem error"
-    end
     local tileXml= (foreground and handler.fgXml) or handler.bgXml
     local tilesets = foreground and handler.fgTilesets or handler.bgTilesets
     if tilesets[name].used and tilesets[name].used> 0 then
         local msg = string.format("Can't remove %s because it is being used as a template",name)
-        target:close()
         return false, msg, "Can't remove tileset being used as a template"
+    end
+    local target ,msg = io.open(xmlTarget, "w")
+    
+    if not target then
+        return false, msg, "Cannot remove tileset due to fileSystem error"
     end
     local out = tilesets[name]
     local searchId = out.id
@@ -413,7 +420,7 @@ function handler.removeTileset(name, foreground,xmlTarget)
     if searchId < utf8.char(curId) then
         curId-=1
         local i = utf8.char(curId)
-        while i ~= searchId do
+        while i > searchId do
             table.insert(ids_used,i)
             curId-=1
             i=utf8.char(curId)

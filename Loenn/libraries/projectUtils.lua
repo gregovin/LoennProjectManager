@@ -123,4 +123,18 @@ end
 function pUtils.normalize(s)
     return string.lower(string.match(s,"^%s*(.-)%s*$"))
 end
+---determines if the file at path is a png 
+---@param path string
+---@return boolean
+---@return string? msg relevant error message
+---@return string? humMessage notification message
+function pUtils.isPng(path)
+    local test, message = io.open(path,"rb")
+    if not test then
+        return false,string.format("Failed to open %s due to a filesystem error:\n%s",path,message),"Cannot read tileset file"
+    end
+    local header = test:read(8)
+    assert(test:close())
+    return header=="\137\80\78\71\13\10\26\10",string.format("%s is a fake png, failed to import",path),"Tileset is a fake png. Ask discord for assistance"
+end
 return pUtils

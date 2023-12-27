@@ -99,18 +99,10 @@ function script.run(args)
     --determine where the foregroundTiles.xml should be
     local target = tilesetHandler.prepareXmlLocation(true,projectDetails)
     --check if the file is a real png
-    local test, msg = io.open(args.tilesetFile,"rb")
-    if not test then
-        notifications.notify("Cannot read tileset file")
-        logging.waring(string.format("Failed to open %s due to a filesystem error:\n%s",args.tilesetFile,msg))
-        return
-    end
-    local header = test:read(8)
-    assert(test:close())
-    if header ~= "\137\80\78\71\13\10\26\10" then
-        notifications.notify("Tileset is a fake png. Ask discord for assistance")
-        logging.waring(string.format("Tileset %s is a fake png, failed to import",args.tilesetFile))
-        return
+    local png, logMsg,notifMsg = pUtils.isPng(args.tilesetFile)
+    if not png then
+        notifications.notify(notifMsg)
+        logging.warning(logMsg)
     end
     --determine the path the tileset should go to and make it
     local tilesetName = fileSystem.filename(args.tilesetFile)
@@ -157,7 +149,7 @@ function script.run(args)
     end
     local remTileset = function()
         local success, logMessage, humMessage = tilesetHandler.removeTileset(args.name,true,target)
-        if not success then logging.waring("failed to write to %s due to the following error:\n%s",target,logMessage) end
+        if not success then logging.warning("failed to write to %s due to the following error:\n%s",target,logMessage) end
         celesteRenderer.loadCustomTilesetAutotiler(state)
         return success,string.format("Failed to remove tileset: {}",humMessage)
     end
@@ -175,7 +167,7 @@ function script.run(args)
             else
                 verb="move"
             end
-            logging.waring(string.format("failed to undo %s due to the following error: %s",verb,message))
+            logging.warning(string.format("failed to undo %s due to the following error: %s",verb,message))
             return false,"failed to remove tileset file due to filesystem error"
         end
         return true
