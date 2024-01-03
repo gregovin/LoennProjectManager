@@ -144,8 +144,8 @@ function loaders.loadMetadataDetails(projectDetails)
     --process xmls
     local foregroundTilestring = p_utils.getXmlString(foregroundTilesXml,projectDetails,"xmls/ForegroundTiles.xml")
     local backgroundTilestring = p_utils.getXmlString(backgroundTilesXml,projectDetails,"xmls/BackgroundTiles.xml")
-    tilesetHandler.processTilesetXml(foregroundTilestring,true)
-    tilesetHandler.processTilesetXml(backgroundTilestring,false)
+    tilesetHandler.processTilesetXml(foregroundTilestring,true,projectDetails)
+    tilesetHandler.processTilesetXml(backgroundTilestring,false,projectDetails)
     --set settings correctly
     settings.set("foregroundTilesXml",foregroundTilesXml,"recentProjectInfo")
     settings.set("backgroundTilesXml",backgroundTilesXml,"recentProjectInfo")

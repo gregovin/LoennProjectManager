@@ -26,6 +26,8 @@ if supportedLonnVersion >= currentLonnVersion then
     safeAddImporter("resyncOpenProject")
     safeAddImporter("editFgTileset")
     safeAddImporter("editBgTileset")
+    safeAddImporter("addRemoteFgTileset")
+    safeAddImporter("addRemoteBgTileset")
 else 
     safeAddImporter("versionNotif")
 end

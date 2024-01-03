@@ -78,7 +78,7 @@ function prescript.prerun()
         end
         prescript.fieldInformation.tileset.options = {}
         for name, t in pairs(tilesetHandler.bgTilesets) do
-            if not tilesetHandler.isVanilla(t.path,projectDetails) then
+            if not tilesetHandler.isVanilla(t.path) then
                 table.insert(prescript.fieldInformation.tileset.options,{name,t.id})
             end
         end

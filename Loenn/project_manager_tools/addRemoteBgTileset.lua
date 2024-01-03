@@ -15,14 +15,13 @@ local celesteRenderer = require("celeste_render")
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
 
 local script = {
-    name = "importBgTileset",
-    displayName = "Import Bg Tileset",
-    tooltip = "Import a background template or tileset",
+    name = "LinkRemoteBgTileset",
+    displayName = "Link Remote Bg Tileset",
+    tooltip = "Add a background template or tileset from another mod. Useful with asset packs",
     verb = "import",
     parameters = {
-        tilesetFile = "",
+        path = "",
         name= "",
-        copyFile = false,
         sound = 0,
         ignores = {},
         template = "",
@@ -30,20 +29,20 @@ local script = {
         }
     ,
     tooltips = {
-        tilesetFile="The png file for your tileset",
+        path="The path to the remote tileset in the other mod. If that mod has an example xml, coppy this from the \"path\" attribute",
         name="The display name for your tileset",
-        copyFile="By default, the file will be moved from its current location. If checked, it will be coppied instead",
         sound = "The sound to play when this tile is stepped on",
         ignores = "which tilesets this tile should ignore",
         template="The template you are using. Edit to create a custom template",
-        customMask="The mask to apply for this tileset or template. Overides the selected template\nIf you are instatiating a template, copy the bit that goes between the <tileset> tags here", 
+        customMask="The mask to apply for this tileset or template. Overides the selected template\nIf you are instatiating a template, or the mod has an example xml, copy the bit that goes between the <tileset> tags here", 
     },
     fieldInformation = {
-        tilesetFile={
-            fieldType = "loennProjectManager.filePath",
-            extension="png"
+        path={
+            fieldType = "string",
+            validator = function(v)
+                return string.find(v,"/")
+            end
         },
-        copyFile ={fieldType="boolean"},
         name = {
             fieldType="loennProjectManager.xmlAttribute"
         },
@@ -66,12 +65,15 @@ local script = {
         customMask={fieldType="string"}
     },
     fieldOrder={
-        "tilesetFile","copyFile","name","sound","template","ignores","customMask"
+        "path","name","sound","template","ignores","customMask"
     }
 }
+
+
 function script.prerun()
     local projectDetails = pUtils.getProjectDetails()
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
+        projectLoader.assertStateValid(projectDetails)
         if not projectLoader.cacheValid then
             projectLoader.loadMetadataDetails(projectDetails)
         end
@@ -95,16 +97,6 @@ function script.run(args)
     projectLoader.assertStateValid(projectDetails)
     --determine where the backgroundTiles.xml should be
     local target = tilesetHandler.prepareXmlLocation(false,projectDetails)
-    --check if the tileset is a real png
-    local png, logMsg,notifMsg = pUtils.isPng(args.tilesetFile)
-    if not png then
-        notifications.notify(notifMsg)
-        logging.warning(logMsg)
-    end
-    --determine the path the tileset should go to and make it
-    local tilesetName = fileSystem.filename(args.tilesetFile)
-    local tilesetDir,path= tilesetHandler.prepareTilesetPath(projectDetails)
-    tilesetDir = fileSystem.joinpath(tilesetDir,path)
     
     local hadBgTiles = state.side.meta and state.side.meta.BackgroundTiles
     local copyMask = ""
@@ -114,75 +106,27 @@ function script.run(args)
     else
         templateInfo = args.template
     end
-    local pName = fileSystem.stripExtension(tilesetName)
-
-    --remember the current name that would be given to the tilesest
-    local preferedDefaultName = utils.humanizeVariableName(pName)
-    if tilesetHandler.bgTilesets[(#args.name>0 and args.name) or preferedDefaultName] then
-        notifications.notify("Cannot create a tileset with name "..pName..", A tileset with that name allready exists")
-        return
-    end
-    pName = string.lower(pName) -- to avoid problems with windows being case-insensitve we will just use one case!
-    while fileSystem.isFile(fileSystem.joinpath(tilesetDir,pName..".png")) do
-        pName = pName..string.char(math.random(97, 97 + 25)) --add a random lowercase letter to the filename until its unique
-    end
-    tilesetName = pName..".png"--update the tileName to the new desired path
-    --if we changed the display name then we should update it if we didn't allready have a displayName
-    if utils.humanizeVariableName(pName)~=preferedDefaultName then
-        args.name=(#args.name>0 and args.name) or preferedDefaultName
-    end
-    path =fileSystem.convertToUnixPath(fileSystem.joinpath(path,pName))
-    local fileOp = function ()
-        local success,message = tilesetHandler.mvOrCPtileset(args.copyFile,args.tilesetFile,fileSystem.joinpath(tilesetDir,tilesetName))
-        if not success then logging.warning(message) end
-        local adj = args.copyFile and "copy" or "move"
-        return success, string.format("Failed to %s tileset file due to a filesystem error",adj)
+    local tilesetName =args.name
+    if not tilesetName then
+        tilesetName = utils.filename(args.path,"/") or args.path
+        tilesetName = utils.humanizeVariableName(tilesetName)
     end
     local addTileset = function()
-        local success, logMessage,displayMessage = tilesetHandler.addTileset(path,args.name,copyMask,args.sound,args.ignores,templateInfo,args.customMask,false,target)
-        if not success then logging.warning(logMessage) end
+        local success, logMessage,displayMessage = tilesetHandler.addTileset(args.path,args.name,copyMask,args.sound,args.ignores,templateInfo,args.customMask,false,target)
+        if not success then logging.warning("failed to write to %s due to the following error:\n%s",target,logMessage) end
         celesteRenderer.loadCustomTilesetAutotiler(state)
         return success,string.format("Failed to add tileset: %s",displayMessage)
     end
     local remTileset = function()
-        local success, logMessage, humMessage = tilesetHandler.removeTileset(args.name,false,target)
+        local success, logMessage, humMessage = tilesetHandler.removeTileset(tilesetName,false,target)
         if not success then logging.warning("failed to write to %s due to the following error:\n%s",target,logMessage) end
         celesteRenderer.loadCustomTilesetAutotiler(state)
-        return success,string.format("Failed to remove tileset: {}", humMessage)
+        return success,string.format("Failed to remove tileset: {}",humMessage)
     end
-    local revFileOp = function ()
-        local success,message
-        if args.copyFile then
-            success,message=fileSystem.remove(fileSystem.joinpath(tilesetDir,tilesetName))
-        else
-            success,message=fileSystem.rename(fileSystem.joinpath(tilesetDir,tilesetName),args.tilesetFile)
-        end
-        if not success then
-            local verb
-            if args.copyFile then
-                verb="copy"
-            else
-                verb="move"
-            end
-            logging.warning(string.format("failed to undo %s due to the following error: %s",verb,message))
-            return false,"failed to remove tileset file due to filesystem error"
-        end
-        return true
-    end
-    local snap1 = fallibleSnapshot.create("Move or Copy",{success=true},revFileOp,fileOp)
-    local snap2 = fallibleSnapshot.create("Add Tileset",{success=true},remTileset,addTileset)
-    local success,message = fileOp()
+    local snap = fallibleSnapshot.create("Add Tileset",{success=true},remTileset,addTileset)
+    local success,message = addTileset()
     if not success then 
         notifications.notify(message)
-        return
-    end
-    success,message = addTileset()
-    if not success then
-        notifications.notify(message)
-        local succ, mess = revFileOp()
-        if not succ then
-            notifications.notify(mess)
-        end
         return
     end
     if (not hadBgTiles) and success then
@@ -190,13 +134,12 @@ function script.run(args)
         tilesetHandler.updateCampaignMetadata(projectDetails,state,false,diffp)
         state.side.meta = state.side.meta or {}
         state.side.meta.BackgroundTiles=diffp
-        settings.set("backgroundTilesXml",diffp,"recentProjectInfo")
+        settings.set("BackgroundTilesXml",diffp,"recentProjectInfo")
         if not state.side.meta.ForegroundTiles then
             notifications.notify("Save and restart loenn to load your tileset")
         end
     end
     celesteRenderer.loadCustomTilesetAutotiler(state)
-    snap2.data.success=success
-    history.addSnapshot(fallibleSnapshot.multiSnapshot("Add Bg tileset",{snap1,snap2}))
+    history.addSnapshot(snap)
 end
 return script

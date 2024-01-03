@@ -131,7 +131,8 @@ end
 ---Processes a tileset xml
 ---@param xmlString string the xmlString to process
 ---@param foreground boolean when true loads tilesets into the foreground table, otherwise the background table
-function handler.processTilesetXml(xmlString,foreground)
+---@param projectDetails table table of project details
+function handler.processTilesetXml(xmlString,foreground,projectDetails)
     if #ids_used == 5 then
         addSpecialChars()
     end
@@ -140,6 +141,7 @@ function handler.processTilesetXml(xmlString,foreground)
     local parser = xml2lua.parser(xhandler)
     local folders = {}
     local xml = utils.stripByteOrderMark(xmlString)
+    local tilesetDir = fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Gameplay","tilesets")
     parser:parse(xml)
     ---prepare some tables and store the xml
     local tilesets={}
@@ -158,7 +160,7 @@ function handler.processTilesetXml(xmlString,foreground)
         local ignores = element._attr.ignores or ""
         local path= element._attr.path
         local folder = string.match(path,"(.*/)")
-        if folder then
+        if folder and fileSystem.isFile(fileSystem.joinpath(tilesetDir,path)) then
             folders[folder]=true 
         end
         local displayName = element._attr.displayName
@@ -382,20 +384,20 @@ end
 ---@param target string the location the file should be moved or copied to
 function handler.mvOrCPtileset(copyFile, tilesetFile, target)
     local success,message
+    logging.info("Destination file: "..target)
     if copyFile then
         success,message = fileSystem.copy(tilesetFile,target)
     else
+        logging.info(target)
         success,message = fileSystem.rename(tilesetFile,target)
     end
     return success,message
 end
 ---Determine weather or not a tileset is vanilla by path
 ---@param path string the relative path for the tileset from the tileset dir(ie the path attribute for the tileset)
----@param projectDetails table the project details for the currently loaded project
 ---@return boolean
-function handler.isVanilla(path,projectDetails)
-    local loc=fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Gameplay","tilesets",path..".png")
-    return not (fileSystem.isFile(loc) or fileSystem.isDirectory(loc))
+function handler.isVanilla(path)
+    return not (string.find(path,"/"))
 end
 ---Remove a tileset from the xmls
 ---@param name string the tileset's name
@@ -434,6 +436,7 @@ function handler.removeTileset(name, foreground,xmlTarget)
         while i > searchId do
             table.insert(ids_used,i)
             curId-=1
+            --logging.info(string.format("cur id:",curId))
             i=utf8.char(curId)
         end
     end

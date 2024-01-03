@@ -6,14 +6,16 @@ local notifications = require("ui.notification")
 local fileSystem = require("utils.filesystem")
 local fileLocations = require("file_locations")
 local safeDelete = mods.requireFromPlugin("libraries.safeDelete")
+local logging = require("logging")
 local history = require("history")
 local snapshot = require("structs.snapshot")
 local celesteRenderer = require("celeste_render")
 local state = require("loaded_state")
 local warningGenerator = mods.requireFromPlugin("libraries.warningGenerator")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
-local logging = require("logging")
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
+
+
 local script={
     name = "deleteBgTileset",
     displayName = "Delete Bg Tileset",
@@ -33,14 +35,6 @@ local script={
     },
     
 }
-local tname
-script.nextScript=warningGenerator.makeWarning(function () 
-    return {string.format("You are deleting the tileset %s. This change applies accross your.",tname),
-        "whole campaign. Deleting a tileset can be undone as normal. The tileset file will be",
-        string.format("stored in %s and eventually deleted if",safeDelete.folder),
-        "this is not reversed. This can result in the permanent loss of the tileset image.",
-        "Are you sure you want to do this?"} end
-    ,function () return tname end,nil,nil,nil,nil)
 function script.prerun()
     local projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
@@ -49,8 +43,8 @@ function script.prerun()
             projectLoader.loadMetadataDetails(projectDetails)
         end
         local topts = {}
-        for k,v in pairs(tilesetHandler.bgTilesets) do
-            if not (tilesetHandler.isVanilla(v.path,projectDetails) or (v.used and v.used>0)) then
+        for k,v in pairs(tilesetHandler.getTilesets(false)) do
+            if not (tilesetHandler.isVanilla(v.path) or (v.used and v.used>0)) then
                 table.insert(topts,{k,k}) 
             end
         end
@@ -66,9 +60,18 @@ function script.run(args)
     local projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
     local target = tilesetHandler.prepareXmlLocation(false,projectDetails)
-    tname=args.tileset
     local tilesetDetails = tilesetHandler.bgTilesets[args.tileset]
     local tpath=fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Gameplay","tilesets",tilesetDetails.path..".png")
+    script.nextScript=warningGenerator.makeWarning( 
+        {string.format("You are deleting the tileset %s. This change applies accross your.",args.tileset),
+            "whole campaign. Deleting a tileset can be undone as normal. The tileset file will be",
+            string.format("stored in %s and eventually deleted if",safeDelete.folder),
+            "this is not reversed. This can result in the permanent loss of the tileset image.",
+            "Are you sure you want to do this?"}
+        ,args.tileset,nil,function () 
+            return fileSystem.isFile(tpath) or fileSystem.isDirectory(tpath)
+        end,nil,nil)
+    
     local remTileset = function()
         local success,message,humMessage=tilesetHandler.removeTileset(args.tileset,false,target)
         if not success then
@@ -85,14 +88,15 @@ function script.run(args)
         celesteRenderer.loadCustomTilesetAutotiler(state)
         return success, humMessage
     end
-    local success, message
+    local success, message, humMessage
     local deleteFile = function ()
+        
         success,message = safeDelete.revdelete(tpath)
         if not success then
             logging.warning(string.format("Failed to remove tileset file due to a following error:\n%s",message),1)
             return success,"failed to remove tileset due to filesystem error"
         end
-        return true, nil
+        return true, humMessage
     end
     local recoverFile = function ()
         success,message = os.rename(success,tpath)
@@ -104,22 +108,31 @@ function script.run(args)
     end
     local remSnap = fallibleSnapshot.create("remove tileset",{},unRemTileset,remTileset)
     local fileSnap = fallibleSnapshot.create("delete file",{},recoverFile,deleteFile)
-    script.nextScript.run = function (args)
-        local succ,mess = remTileset()
-        if not succ then
-            notifications.notify(mess)
-            return
-        end
-        succ,mess = deleteFile()
-        if not succ then
-            notifications.notify(mess)
-            succ,mess = recoverFile()
-            if not succ then
-                notifications.notify(mess)
+    if fileSystem.isFile(tpath) or fileSystem.isDirectory(tpath) then 
+        script.nextScript.run = function (args)
+            local success,message = remTileset()
+            if not success then
+                notifications.notify(message)
+                return
             end
+            success,message = deleteFile()
+            if not success then
+                notifications.notify(message)
+                local suc,mess = recoverFile()
+                if not suc then
+                    notifications.notify(mess)
+                end
+                return
+            end
+            history.addSnapshot(fallibleSnapshot.multiSnapshot("Delete tileset",{remSnap,fileSnap}))
+        end
+    else
+        local success,message = remTileset()
+        if not success then
+            notifications.notify(message)
             return
         end
-        history.addSnapshot(fallibleSnapshot.multiSnapshot("Delete tileset",{remSnap,fileSnap}))
+        history.addSnapshot(remSnap)
     end
 end
 return script
