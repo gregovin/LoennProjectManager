@@ -8,7 +8,6 @@ local celesteRenderer = require("celeste_render")
 local history = require("history")
 local logging = require("logging")
 local state = require("loaded_state")
-local xmlWriter = mods.requireFromPlugin("libraries.xmlWriter")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 
 local selTilesetName
