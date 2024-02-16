@@ -6,7 +6,7 @@ local settings = mods.requireFromPlugin("libraries.settings")
 local meta = require("meta")
 
 local importers = {}
-local supportedLonnVersion = v("0.7.7")
+local supportedLonnVersion = v("0.7.8")
 local currentLonnVersion = meta.version
 
 local function safeAddImporter(modname)

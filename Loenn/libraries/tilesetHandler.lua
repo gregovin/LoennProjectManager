@@ -471,15 +471,7 @@ function handler.editTileset(name, foreground,sound, ignores, copyMask, template
     tilesets[name].sound = sound
     tileXml._attr.sound = sound
     tilesets[name].ignores = ignores
-    tilesets[name].ignores={}
-    local ig = ""
-    for _,v in ipairs(ignores) do
-        if #ig>0 then
-            ig=ig..","
-        end
-        ig=ig..v
-        tilesets[name].ignores[v]=true
-    end
+    local ig = projectUtils.listToString(projectUtils.setAsList(ignores))
     tileXml._attr.ignores= (#ig>0 and ig) or nil
     local dict = foreground and handler.revDict.foreground or handler.revDict.background
     local copied = tilesets[name].copy and tilesets[dict[tilesets[name].copy]]

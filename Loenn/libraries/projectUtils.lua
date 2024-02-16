@@ -53,8 +53,7 @@ function pUtils.listToString(ls)
     if type(ls) ~= 'table' then
         return ls
     end
-
-    for k,v in ipairs(ls) do
+    for _,v in ipairs(ls) do
         res = res .. sep .. v
         sep = ','
     end
