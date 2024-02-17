@@ -32,9 +32,9 @@ uie.add("multiListItem",{
         if self.enabled and button == 1 then
             local owner = self.owner or self.parent
             if owner.isMultiList then
-                self.selected = not self.selected
-                self.toggleSelected(self)
-                owner.updateText(owner)
+                self:toggleSelected()
+                owner:updateText()
+                owner:runCallback()
             end
         end
     end
@@ -158,6 +158,7 @@ uie.add("multiselect", {
     end,
 
     onClick = function(self, x, y, button)
+        logging.info("Clicked")
         if self.enabled and button == 1 then
             local submenu = self.submenu
             local spawnNewMenu = true
@@ -169,6 +170,7 @@ uie.add("multiselect", {
                     self.updateText(self)
                     self.runCallback(self)
                 end
+                logging.info("despawn")
                 submenu:removeSelf()
             end
             if spawnNewMenu then
