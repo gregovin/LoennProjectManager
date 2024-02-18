@@ -8,7 +8,6 @@ local notifications = require("ui.notification")
 local celesteRenderer = require("celeste_render")
 local history = require("history")
 local state = require("loaded_state")
-local xmlWriter = mods.requireFromPlugin("libraries.xmlWriter")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 
 local selTilesetName
@@ -162,7 +161,7 @@ function postscript.run(args)
         if not success then
             logging.warning(string.format("Failed to write to %s due to the following error:\n%s",target,message))
         end
-        celesteRenderer.loadCustomTilesetAutotiler(state)
+        tilesetHandler.reloadTilesets({"tilesBg"},state)
         return success,"Could not write to backgroundTiles.xml due to a filesystem error"
     end
     local backward = function()
@@ -170,7 +169,7 @@ function postscript.run(args)
         if not success then
             logging.warning(string.format("Failed to write to %s due to the following error:\n%s",target,message))
         end
-        celesteRenderer.loadCustomTilesetAutotiler(state)
+        tilesetHandler.reloadTilesets({"tilesBg"},state)
         return success,"Could not write to backgroundTiles.xml due to a filesystem error"
     end
     forward()

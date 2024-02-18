@@ -4,7 +4,7 @@ local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local utils = require("utils")
 local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local notifications = require("ui.notification")
-local celesteRenderer = require("celeste_render")
+local celesteRender = require("celeste_render")
 local history = require("history")
 local logging = require("logging")
 local state = require("loaded_state")
@@ -161,7 +161,7 @@ function postscript.run(args)
         if not success then
             logging.warning(string.format("Failed to write to %s due to the following error:\n%s",target,message))
         end
-        celesteRenderer.loadCustomTilesetAutotiler(state)
+        tilesetHandler.reloadTilesets({"tilesFg"},state)
         return success,"Could not write to foregroundTiles.xml due to a filesystem error"
     end
     local backward = function()
@@ -169,7 +169,7 @@ function postscript.run(args)
         if not success then
             logging.warning(string.format("Failed to write to %s due to the following error:\n%s",target,message))
         end
-        celesteRenderer.loadCustomTilesetAutotiler(state)
+        tilesetHandler.reloadTilesets({"tilesFg"},state)
         return success,"Could not write to foregroundTiles.xml due to a filesystem error"
     end
     forward()

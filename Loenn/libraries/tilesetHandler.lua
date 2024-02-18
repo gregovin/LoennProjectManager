@@ -10,6 +10,7 @@ local utf8 = require("utf8")
 local mapcoder=require("mapcoder")
 local fileLocations = require("file_locations")
 local notifications = require("ui.notification")
+local celesteRender = require("celeste_render")
 local side_struct=require("structs.side")
 local projectUtils = mods.requireFromPlugin("libraries.projectUtils")
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
@@ -124,6 +125,18 @@ function handler.getTemplates(foreground)
     else
         return handler.bgTemplates
     end
+end
+function handler.reloadTilesets(key,side)
+    celesteRender.loadCustomTilesetAutotiler(side)
+
+    -- Invalidate all tile renders
+    celesteRender.invalidateRoomCache(nil, key)
+
+    -- Redraw any visible rooms
+    local selectedItem, selectedItemType = side.getSelectedItem()
+
+    celesteRender.clearBatchingTasks()
+    celesteRender.forceRedrawVisibleRooms(side.map.rooms, side, selectedItem, selectedItemType)
 end
 local function fixWierdXml(xmlString)
     return string.gsub(xmlString,"<set>%s*<([^>/\"]*)>([^<]*)</%1>%s*<([^>/\"]*)>([^<]*)</%3>%s*</set>","<set %1=\"%2\" %3=\"%4\"/>")
