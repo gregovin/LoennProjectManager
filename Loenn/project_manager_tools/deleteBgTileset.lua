@@ -61,6 +61,10 @@ function script.run(args)
     local target = tilesetHandler.prepareXmlLocation(false,projectDetails)
     local tilesetDetails = tilesetHandler.bgTilesets[args.tileset]
     local tpath=fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Gameplay","tilesets",tilesetDetails.path..".png")
+    if tilesetHandler.checkTileset(false,state,tilesetDetails.id) then
+        notifications.notify("Tileset is used in map, cannot be deleted")
+        return
+    end
     script.nextScript=warningGenerator.makeWarning( 
         {string.format("You are deleting the tileset %s. This change applies accross your.",args.tileset),
             "whole campaign. Deleting a tileset can be undone as normal. The tileset file will be",

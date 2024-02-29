@@ -12,6 +12,7 @@ local fileLocations = require("file_locations")
 local celesteRender = require("celeste_render")
 local side_struct=require("structs.side")
 local projectUtils = mods.requireFromPlugin("libraries.projectUtils")
+local tilesStruct = require("structs.tiles")
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
 
 local handler = {}
@@ -561,5 +562,14 @@ function handler.updateCampaignMetadata(projectDetails,state,foreground,path)
             mapcoder.encodeFile(mlocal,side_struct.encode(s))
         end
     end
+end
+function handler.checkTileset(foreground,state,id)
+    local prop = "tiles"..(foreground ? "Fg" : "Bg")
+    for _,room in ipairs(state.map.rooms) do
+        if string.find(tilesStruct.matrixToTileString(room[prop].matrix),id) then
+            return true
+        end
+    end
+    return false
 end
 return handler

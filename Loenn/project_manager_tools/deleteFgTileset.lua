@@ -10,7 +10,6 @@ local logging = require("logging")
 local history = require("history")
 local celesteRenderer = require("celeste_render")
 local state = require("loaded_state")
-local utils = require("utils")
 local warningGenerator = mods.requireFromPlugin("libraries.warningGenerator")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
@@ -51,9 +50,7 @@ function script.prerun()
         table.sort(topts,function (a,b)
             return a[1]<b[1]
         end)
-        script.fieldInformation.tileset.options = utils.deepCopy(topts)
-        table.insert(topts,1, {"Air","&"})
-        script.fieldInformation.replacement.options = topts
+        script.fieldInformation.tileset.options =topts
     else
         error("Project details invalid. Load a project to fix this")
     end
@@ -64,6 +61,10 @@ function script.run(args)
     local target = tilesetHandler.prepareXmlLocation(true,projectDetails)
     local tilesetDetails = tilesetHandler.fgTilesets[args.tileset]
     local tpath=fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Gameplay","tilesets",tilesetDetails.path..".png")
+    if tilesetHandler.checkTileset(true,state,tilesetDetails.id) then
+        notifications.notify("Tileset is used in map, cannot be deleted")
+        return
+    end
     script.nextScript=warningGenerator.makeWarning( 
         {string.format("You are deleting the tileset %s. This change applies accross your.",args.tileset),
             "whole campaign. Deleting a tileset can be undone as normal. The tileset file will be",
