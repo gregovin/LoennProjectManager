@@ -8,9 +8,9 @@ local fileLocations = require("file_locations")
 local safeDelete = mods.requireFromPlugin("libraries.safeDelete")
 local logging = require("logging")
 local history = require("history")
-local snapshot = require("structs.snapshot")
 local celesteRenderer = require("celeste_render")
 local state = require("loaded_state")
+local utils = require("utils")
 local warningGenerator = mods.requireFromPlugin("libraries.warningGenerator")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
@@ -22,16 +22,16 @@ local script={
     tooltip = "Remove a foreground tileset. Cannot remove templates or vannilla tilesets",
     verb="delete",
     parameters = {
-        tileset = ""
+        tileset = "",
     },
     tooltips = {
-        tileset = "The tileset to delete"
+        tileset = "The tileset to delete",
     },
     fieldInformation = {
         tileset = {
             fieldType = "string",
             options = {}
-        }
+        },
     },
     
 }
@@ -51,7 +51,9 @@ function script.prerun()
         table.sort(topts,function (a,b)
             return a[1]<b[1]
         end)
-        script.fieldInformation.tileset.options = topts
+        script.fieldInformation.tileset.options = utils.deepCopy(topts)
+        table.insert(topts,1, {"Air","&"})
+        script.fieldInformation.replacement.options = topts
     else
         error("Project details invalid. Load a project to fix this")
     end
@@ -71,7 +73,6 @@ function script.run(args)
         ,args.tileset,nil,function () 
             return fileSystem.isFile(tpath) or fileSystem.isDirectory(tpath)
         end,nil,nil)
-    
     local remTileset = function()
         local success,message,humMessage=tilesetHandler.removeTileset(args.tileset,true,target)
         if not success then
