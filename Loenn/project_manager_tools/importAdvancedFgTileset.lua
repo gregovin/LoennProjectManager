@@ -197,8 +197,9 @@ function script.run(args)
         if not state.side.meta.BackgroundTiles then
             notifications.notify("Save and restart loenn to load your tileset")
         end
+        celesteRenderer.loadCustomTilesetAutotiler(state)
     end
-    celesteRenderer.loadCustomTilesetAutotiler(state)
+    
     snap2.data.success=success
     history.addSnapshot(fallibleSnapshot.multiSnapshot("Add Fg tileset",{snap1,snap2}))
 end
