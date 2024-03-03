@@ -2,7 +2,6 @@ local mods = require("mods")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local logging = require("logging")
 local v = require("utils.version_parser")
-local settings = mods.requireFromPlugin("libraries.settings")
 local meta = require("meta")
 
 local importers = {}
