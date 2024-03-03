@@ -13,6 +13,7 @@ local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local celesteRenderer = require("celeste_render")
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
+local celesteEnums = require("consts.celeste_enums")
 
 local script = {
     name = "importBgTileset",
@@ -49,7 +50,7 @@ local script = {
         },
         sound = {
             fieldType="integer",
-            options = tilesetHandler.sounds
+            options = celesteEnums.tileset_sound_ids
         },
         ignores={
             fieldType="loennProjectManager.multiselect",

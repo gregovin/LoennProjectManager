@@ -4,11 +4,11 @@ local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local utils = require("utils")
 local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local notifications = require("ui.notification")
-local celesteRender = require("celeste_render")
 local history = require("history")
 local logging = require("logging")
 local state = require("loaded_state")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
+local celesteEnums = require("consts.celeste_enums")
 
 local selTilesetName
 local postscript = {
@@ -31,7 +31,7 @@ local postscript = {
     fieldInformation = {
         sound = {
             fieldType="integer",
-            options = tilesetHandler.sounds
+            options = celesteEnums.tileset_sound_ids
         },
         ignores={
             fieldType="loennProjectManager.multiselect",
