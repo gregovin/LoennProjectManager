@@ -18,7 +18,7 @@ local celesteEnums = require("consts.celeste_enums")
 local script = {
     name = "importFgTileset",
     displayName = "Import Fg Tileset",
-    tooltip = "Import a foreground template or tileset",
+    tooltip = "Import a tileset file into your campaign as a foreground tileset",
     verb = "import",
     parameters = {
         tilesetFile = "",
@@ -32,11 +32,11 @@ local script = {
     ,
     tooltips = {
         tilesetFile="The png file for your tileset",
-        name="The display name for your tileset",
+        name="The name you want your tileset to be displayed under in loenn",
         copyFile="By default, the file will be moved from its current location. If checked, it will be coppied instead",
         sound = "The sound to play when this tile is stepped on",
-        ignores = "which tilesets this tile should ignore",
-        template="The template you are using. Edit to create a custom template",
+        ignores = "Which tilesets this tile should ignore. Tilesets selected will be treated as air when drawing this tileset",
+        template="The template you are using.\nTo add a new template, enter the name here and use the custom mask field to specify the masking",
         customMask="The mask to apply for this tileset or template. Overides the selected template\nIf you are instatiating a template, copy the bit that goes between the <tileset> tags here", 
     },
     fieldInformation = {

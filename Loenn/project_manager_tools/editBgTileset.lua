@@ -24,7 +24,7 @@ local postscript = {
     },
     tooltips = {
         sound = "The sound to play when this tile is stepped on",
-        ignores = "Which tilesets this tile should ignore",
+        ignores = "Which tilesets this tile should ignore. Tilesets selected will be treated as air when drawing this tileset",
         template="Which template to use, or the name of the custom template for this tileset",
         customMask="The mask to apply for this tileset or template. May overide copy mask.\nIf you are instatiating a template, copy the bit that goes between the <tileset> tags here"
     },
