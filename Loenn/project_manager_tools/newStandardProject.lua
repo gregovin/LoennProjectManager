@@ -17,7 +17,7 @@ local script = {
     tooltips = {
         modIdentifier = "The identifier for mod. This will be the top level folder your mod will be saved in. It should be unique.\n Must be a valid portable filename. \nFor many mods it makes sense for this to be the same as or similar your Map Name.",
         username = "Your username. Must be a valid portable filename",
-        campaignName= "The name for your campaign. It should be unique among your projects.\nMust be a valid portable filename.",
+        campaignName= "The name for your campaign. It should be unique among your projects. If unsure, you can use your map or mod name\nMust be a valid portable filename.",
         mapIdentifier="The identifier for your map. If you are making a multipart campaigns, should start with a 1 or 0 indexed number.\nMust be a valid portable filename",
     },
     parameters = {
