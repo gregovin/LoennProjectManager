@@ -528,8 +528,9 @@ function handler.updateCampaignMetadata(projectDetails,state,foreground,path)
 end
 function handler.checkTileset(foreground,state,id)
     local prop = "tiles"..(foreground ? "Fg" : "Bg")
+    local idCheck = string.gsub(id,'%W','%%%1')
     for _,room in ipairs(state.map.rooms) do
-        if string.find(tilesStruct.matrixToTileString(room[prop].matrix),id) then
+        if string.find(tilesStruct.matrixToTileString(room[prop].matrix),idCheck) then
             return true
         end
     end

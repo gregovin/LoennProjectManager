@@ -75,15 +75,16 @@ function prescript.prerun()
         if not projectLoader.cacheValid then
             projectLoader.loadMetadataDetails(projectDetails)
         end
-        prescript.fieldInformation.tileset.options = {}
+        local tops = {}
         for name, t in pairs(tilesetHandler.bgTilesets) do
             if not tilesetHandler.isVanilla(t.path) then
-                table.insert(prescript.fieldInformation.tileset.options,{name,t.id})
+                table.insert(tops,{name,name})
             end
         end
-        table.sort(prescript.fieldInformation.tileset.options,function (a,b)
-        return a[1]<b[1]
-    end)
+        table.sort(tops,function (a,b)
+            return a[1]<b[1]
+        end)
+        prescript.fieldInformation.tileset.options = tops
     elseif not projectDetails.name then
         error("Cannot find tilesets because no project is selected!",2)
     elseif not projectDetails.username then
@@ -97,7 +98,7 @@ end
 function prescript.run(args)
     projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
-    selTilesetName=tilesetHandler.revDict.background[args.tileset]
+    selTilesetName=args.tileset
     local tileset = tilesetHandler.bgTilesets[selTilesetName]
     postscript.displayName = "Editing ".. selTilesetName
     postscript.parameters.sound = tileset.sound or 0
