@@ -474,7 +474,7 @@ function handler.editTileset(name, foreground,sound, ignores, copyMask, template
         tileXml.set = nil
     end
     if #template>0 then
-        table.insert(xml.Data.Tileset,tileXml,1)
+        table.insert(xml.Data.Tileset,1,tileXml)
     else
         table.insert(xml.Data.Tileset,tileXml)
     end
