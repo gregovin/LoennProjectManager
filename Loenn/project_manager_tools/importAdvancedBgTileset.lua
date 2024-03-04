@@ -26,7 +26,7 @@ local script = {
         copyFile = false,
         sound = 0,
         ignores = {},
-        template = "",
+        template = "z",
         customMask = "",
         }
     ,
@@ -36,7 +36,7 @@ local script = {
         copyFile="By default, the file will be moved from its current location. If checked, it will be coppied instead",
         sound = "The sound to play when this tile is stepped on",
         ignores = "Which tilesets this tile should ignore. Tilesets selected will be treated as air when drawing this tileset",
-        template="The template you are using.\nTo add a new template, enter the name here and use the custom mask field to specify the masking",
+        template="The template you are using.\nTo add a new template, enter the name here and use the custom mask field to specify the",
         customMask="The mask to apply for this tileset or template. Overides the selected template\nIf you are instatiating a template, copy the bit that goes between the <tileset> tags here", 
     },
     fieldInformation = {

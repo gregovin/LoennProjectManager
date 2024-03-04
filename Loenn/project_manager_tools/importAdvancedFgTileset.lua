@@ -26,7 +26,7 @@ local script = {
         copyFile = false,
         sound = 0,
         ignores = {},
-        template = "",
+        template = "z",
         customMask = "",
         }
     ,
