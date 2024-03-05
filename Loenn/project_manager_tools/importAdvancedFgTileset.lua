@@ -132,9 +132,7 @@ function script.run(args)
     end
     tilesetName = pName..".png"--update the tileName to the new desired path
     --if we changed the display name then we should update it if we didn't allready have a displayName
-    if utils.humanizeVariableName(pName)~=preferedDefaultName then
-        args.name=(#args.name>0 and args.name) or preferedDefaultName
-    end
+    args.name=(#args.name>0 and args.name) or preferedDefaultName
     path =fileSystem.convertToUnixPath(fileSystem.joinpath(path,pName))
     local fileOp = function ()
         local success,message = tilesetHandler.mvOrCPtileset(args.copyFile,args.tilesetFile,fileSystem.joinpath(tilesetDir,tilesetName))
