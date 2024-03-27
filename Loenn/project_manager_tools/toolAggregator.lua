@@ -5,7 +5,7 @@ local v = require("utils.version_parser")
 local meta = require("meta")
 
 local importers = {}
-local supportedLonnVersion = v("0.7.8")
+local supportedLonnVersion = v("0.7.9")
 local currentLonnVersion = meta.version
 
 local function safeAddImporter(modname)
