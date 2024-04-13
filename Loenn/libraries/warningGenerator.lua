@@ -66,6 +66,7 @@ function warningGenerator.makeWarning(text, tosString, checkText,predicate, call
             out.fieldInformation[name]={
                 fieldType = "loennProjectManager.verificationString",
                 requiredValue = tosString,
+                displayName = name
             }
             table.insert(out.fieldOrder, name)
         end

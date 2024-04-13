@@ -78,7 +78,7 @@ function contextWindow.prepareFormData(scriptHandler, language)
 
             fieldsAdded[field] = true
             dummyData[field] = utils.deepcopy(value)
-            fieldInformation[field].displayName = humanizedName
+            fieldInformation[field].displayName = fieldInformation[field].displayName or humanizedName
             fieldInformation[field].tooltipText = tooltip
         end
     end
