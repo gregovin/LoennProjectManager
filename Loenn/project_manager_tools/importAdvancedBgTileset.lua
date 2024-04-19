@@ -19,6 +19,7 @@ local script = {
     name = "importBgTileset",
     displayName = "Import Bg Tileset",
     tooltip = "Import a tileset file into your campaign as a background tileset",
+    layer="background",
     verb = "import",
     parameters = {
         tilesetFile = "",

@@ -20,9 +20,11 @@ tool._type = "tool"
 tool.name = "project_manager"
 tool.group = "z"
 tool.image = nil
-tool.layer = "project_manager"
+tool.layer = "project"
 tool.validLayers = {
-    "project_manager",
+    "project",
+    "foreground",
+    "background",
 }
 
 -- the positions of all currently active scripts (aka those with the property window open), used for rendering previews
@@ -42,6 +44,9 @@ local scriptLocationPreviewColors = {
 function tool.reset(load)
     tool.currentScript = ""
     tool.scriptsAvailable = {}
+    tool.scriptsAvailable["project"] ={}
+    tool.scriptsAvailable["foreground"] ={}
+    tool.scriptsAvailable["background"] ={}
     tool.scripts = { }
     safeDelete.startup()
     if load then
@@ -51,8 +56,8 @@ function tool.reset(load)
 end
 tool.reset(false)
 
-local function addScript(name, displayName, tooltip)
-    table.insert(tool.scriptsAvailable, {
+local function addScript(name, displayName, tooltip, layer)
+    table.insert(tool.scriptsAvailable[layer], {
         name = name,
         displayName = (displayName or name),
         tooltipText = tooltip,
@@ -151,9 +156,8 @@ function tool.mouseclicked(x, y, button, istouch, pressed)
         })
     end
 end
-
 function tool.getMaterials(layer)
-    return tool.scriptsAvailable
+    return tool.scriptsAvailable[layer]
 end
 
 local function finalizeScript(handler, name)
@@ -163,15 +167,13 @@ local function finalizeScript(handler, name)
         logging.info("Loaded project management tool '" .. name)
     end
 
-
-    addScript(name, handler.displayName, handler.tooltip)
+    addScript(name, handler.displayName, handler.tooltip, handler.layer)
     tool.scripts[name] = handler
 
     return name
 end
 
 function tool.loadScripts()
-
     for i,importer in ipairs(importers) do
         finalizeScript(importer,importer.name)
     end

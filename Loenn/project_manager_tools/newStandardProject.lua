@@ -14,6 +14,7 @@ local script = {
     name = "newStandardProject",
     displayName = "New Standard Project",
     tooltip = "Create a standard celeste project with a campaign and 1 map",
+    layer="project",
     tooltips = {
         modIdentifier = "The identifier for mod. This will be the top level folder your mod will be saved in. It should be unique.\n Must be a valid portable filename. \nFor many mods it makes sense for this to be the same as or similar your Map Name.",
         username = "Your username. Must be a valid portable filename",

@@ -7,5 +7,6 @@ local script = warningGenerator.makeWarning(
     "Ensure Loenn Project manager and loenn are up to date(and restart loenn).",
     "If that fails, ping @gregovin on the discord"}
 )
+script.layer="project",
 script.displayName = "Version Error"
 return script

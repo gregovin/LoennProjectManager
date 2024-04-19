@@ -19,6 +19,7 @@ local script={
     name = "deleteFgTileset",
     displayName = "Delete Fg Tileset",
     tooltip = "Remove a foreground tileset and its file from the campaign. Cannot remove templates or vannilla tilesets",
+    layer = "foreground",
     verb="delete",
     parameters = {
         tileset = "",

@@ -52,6 +52,7 @@ local prescript = {
     name = "editBgTileset",
     displayName = "Edit Bg Tileset",
     toolTip = "Edit a Background tileset",
+    layer="background",
     verb = "edit",
     parameters = {
         tileset = ""

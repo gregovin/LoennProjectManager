@@ -12,6 +12,7 @@ local script = {
     name = "manageMaps",
     displayName = "Choose Map",
     tooltip = "Select or Create a map for your campaignt",
+    layer="project",
     tooltips = {
         mapName = "The name for your map. Select from the list or enter a new entry to create a new map. \n Must be a valid portable filename",
     },

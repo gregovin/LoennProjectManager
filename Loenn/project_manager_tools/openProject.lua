@@ -12,6 +12,7 @@ local script = {
     name = "openProject",
     displayName = "Open Project",
     tooltip = "Open a pre-existing project",
+    layer="project",
     tooltips = {
         modIdentifier = "The identifier for mod. This will be the top level folder your mod will be saved in",
         username = "Your username",

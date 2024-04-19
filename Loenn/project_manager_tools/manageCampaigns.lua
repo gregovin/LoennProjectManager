@@ -11,6 +11,7 @@ local script = {
     name = "manageCampaigns",
     displayName = "Choose Campaign",
     tooltip = "Select or create a campaign for your project",
+    layer="project",
     tooltips = {
         campaignName = "The name for your campaign. Select from the list or enter a new entry to create a new campaign. \n Must be a valid portable filename",
     },

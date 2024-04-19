@@ -1,4 +1,6 @@
 mods.LoennProjectManager.name=Loenn Project Manager
 
 tools.name.project_manager=Project Manager
-layers.name.project_manager=tools
+layers.name.project=Management
+layers.name.foreground=Fg tiles
+layers.name.background=Bg tiles

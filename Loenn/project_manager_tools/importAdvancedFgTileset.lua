@@ -19,6 +19,7 @@ local script = {
     name = "importFgTileset",
     displayName = "Import Fg Tileset",
     tooltip = "Import a tileset file into your campaign as a foreground tileset",
+    layer = "foreground",
     verb = "import",
     parameters = {
         tilesetFile = "",

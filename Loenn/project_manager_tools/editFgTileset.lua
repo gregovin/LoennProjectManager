@@ -52,6 +52,7 @@ local prescript = {
     name = "editFgTileset",
     displayName = "Edit Fg Tileset",
     toolTip = "Edit a foreground tileset",
+    layer = "foreground",
     verb = "edit",
     parameters = {
         tileset = ""

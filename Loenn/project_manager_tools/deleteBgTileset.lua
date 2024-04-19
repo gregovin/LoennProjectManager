@@ -19,6 +19,7 @@ local script={
     name = "deleteBgTileset",
     displayName = "Delete Bg Tileset",
     tooltip = "Remove a background tileset and its file from the campaign. Cannot remove templates or vannilla tilesets",
+    layer="background",
     verb="delete",
     parameters = {
         tileset = ""

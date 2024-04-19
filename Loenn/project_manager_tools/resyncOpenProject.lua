@@ -12,6 +12,7 @@ local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local script = {
     name = "resyncProject",
     displayName = "Resync Open Project",
+    layer="project",
     tooltip = "Attempts to load the project for the currently selected map",
 }
 

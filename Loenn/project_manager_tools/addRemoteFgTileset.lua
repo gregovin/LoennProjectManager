@@ -19,6 +19,7 @@ local script = {
     name = "LinkRemoteFgTileset",
     displayName = "Link Remote Fg Tileset",
     tooltip = "Add a foreground template or tileset to this campaign from another mod. Useful with asset packs",
+    layer = "foreground",
     verb = "import",
     parameters = {
         path = "",

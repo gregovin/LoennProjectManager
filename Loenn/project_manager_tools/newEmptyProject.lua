@@ -11,6 +11,7 @@ local script = {
     name = "newEmptyProject",
     displayName = "New Empty Project",
     tooltip = "Create a new Celeste modded project. Makes a toplevel folder and sets the current project directory. You can then add campaigns using the provided scripts.\n If you wish to make a small campaign or single map, use the New Standard Project Script",
+    layer="project",
     tooltips = {
         modIdentifier = "The identifier for mod. This will be the top level folder your mod will be saved in. \n Must be a valid portable filename",
         username = "Your username.\n Must be a valid portable filename",
