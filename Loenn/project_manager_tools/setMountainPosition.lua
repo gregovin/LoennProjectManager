@@ -1,12 +1,13 @@
 local logging = require("logging")
 local mods = require("mods")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
-
+local utils = require("utils")
 
 local detailScript = {
     name = "setMountainPos",
-    displayName = "Set Mountain Details",
+    displayName = "Set Mountain Positon",
     layer="metadata",
+    verb = "apply",
     tooltip = "Modify where your map appears in the overworld, as well as the overworld state when your map is selected.\nSee the Overworld Customisation page on the everest api wiki for more info on how to use this",
     parameters = {
         idlePosition = "",
@@ -46,7 +47,7 @@ local detailScript = {
 }
 local initScript = {
     name = "setMountainPos",
-    displayName = "Set Mountain Details",
+    displayName = "Set Mountain Position",
     layer="metadata",
     tooltip = "Modify where your map appears in the overworld, as well as the overworld state when your map is selected.\nSee the Overworld Customisation page on the everest api wiki for more info on how to use this",
     parameters = {
@@ -54,20 +55,20 @@ local initScript = {
         overideOtherConfig=true,
     },
     tooltips = {
-        copy = "The map whose details to copy",
-        overideOtherConfig = "Weather or not to overide non-position parts of the mountain config"
+        copy = "The map whose details to copy. Leave unset to specify the details manually",
     },
     fieldInformation = {
         copy = {
             fieldType = "string",
             options = {"Prologue","Forsaken City","Old Site","Celestial Resort","Golden Ridge","Mirror Temple","Reflection","The Summit","Epilogue","Core","Farewell"}
         },
-        overideOtherConfig = {fieldType="boolean"}
-    }
+    },
+    fieldOrder = {"copy","overideOtherConfig"}
 }
 function initScript.run(args)
     if args.copy ~="" then
-        local appliedConf = metadataHandler.vanillaMountainConfig
+        local appliedConf = utils.deepcopy(metadataHandler.vanillaMountainConfig[args.copy])
+        initScript.nextScript = nil
     else
         initScript.nextScript = detailScript
     end
