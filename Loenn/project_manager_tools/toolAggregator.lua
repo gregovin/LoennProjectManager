@@ -27,6 +27,7 @@ if supportedLonnVersion >= currentLonnVersion then
     safeAddImporter("editBgTileset")
     safeAddImporter("addRemoteFgTileset")
     safeAddImporter("addRemoteBgTileset")
+    safeAddImporter("setMountainPosition")
 else 
     safeAddImporter("versionNotif")
 end

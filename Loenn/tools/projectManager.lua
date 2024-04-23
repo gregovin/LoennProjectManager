@@ -25,6 +25,7 @@ tool.validLayers = {
     "project",
     "foreground",
     "background",
+    "metadata"
 }
 
 -- the positions of all currently active scripts (aka those with the property window open), used for rendering previews
@@ -47,6 +48,7 @@ function tool.reset(load)
     tool.scriptsAvailable["project"] ={}
     tool.scriptsAvailable["foreground"] ={}
     tool.scriptsAvailable["background"] ={}
+    tool.scriptsAvailable["metadata"] ={}
     tool.scripts = { }
     safeDelete.startup()
     if load then
