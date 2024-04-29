@@ -10,7 +10,7 @@ local detailScript = {
     verb = "apply",
     tooltip = "Modify where your map appears in the overworld, as well as the overworld state when your map is selected.\nSee the Overworld Customisation page on the everest api wiki for more info on how to use this",
     parameters = {
-        idlePosition = "",
+        idlePosition = {0,0,0},
         idleTarget = "",
         selectPosition = "",
         selectTarget = "",
@@ -34,6 +34,9 @@ local detailScript = {
         rotate = "Wether or not the camera should rotate oround the mountian"
     },
     fieldInformation = {
+        idlePosition = {
+            fieldType = "loennProjectManager.position3d"
+        },
         state = {
             fieldType = "integer",
             options ={{"night",0},{"dawn",1},{"day",2},{"moon",3}}
@@ -67,7 +70,7 @@ local initScript = {
 }
 function initScript.run(args)
     if args.copy ~="" then
-        local appliedConf = utils.deepcopy(metadataHandler.vanillaMountainConfig[args.copy])
+        local appliedConf = metadataHandler.vanillaMountainConfig[args.copy]
         initScript.nextScript = nil
     else
         initScript.nextScript = detailScript
