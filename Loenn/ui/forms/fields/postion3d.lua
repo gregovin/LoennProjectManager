@@ -5,7 +5,6 @@ local uiUtils = require("ui.utils")
 local fieldDropdown = require("ui.widgets.field_dropdown")
 
 local utils = require("utils")
-local logging = require('logging')
 
 local positionField = {}
 
@@ -44,7 +43,14 @@ function positionField._MT.__index:getCurrentText()
 end
 
 function positionField._MT.__index:fieldValid()
-    return {type(self:getValue()[1])=="number", type(self:getValue()[2])=="number", type(self:getValue()[3])=="number"}
+   local v= self:fieldsValid()
+   return v[1] and v[2] and v[3]
+end
+function positionField._MT.__index:validateIdx(v)
+    return type(v)=="number" and v>=self.minValue and v<=self.maxValue
+end
+function positionField._MT.__index:fieldsValid()
+    return {self:validateIdx(self:getValue()[1]), self:validateIdx(self:getValue()[2]), self:validateIdx(self:getValue()[3])}
 end
 local function updateFieldStyle(formField, valid)
     -- Make sure the textbox visual style matches the input validity
@@ -83,9 +89,9 @@ end
 
 local function fieldChanged(formField,col)
     return function(element, new, old)
-        formField.currentValue[col] = new
+        formField.currentValue[col] = #new>0 and tonumber(new)
         
-        local valid = formField:fieldValid()
+        local valid = formField:fieldsValid()
         updateFieldStyle(formField, valid)
         formField:notifyFieldChanged()
     end
@@ -99,7 +105,8 @@ function positionField.getElement(name, value, options)
 
     local minWidth = options.minWidth or options.width or 160
     local maxWidth = options.maxWidth or options.width or 160
-
+    formField.minValue = options.minValue or -math.huge
+    formField.maxValue = options.maxValue or math.huge
     local editable = options.editable
 
     local label = uiElements.label(options.displayName or name)
@@ -122,9 +129,9 @@ function positionField.getElement(name, value, options)
         posZ:setEnabled(false)
     end
 
-    posX:setPlaceholder(value[1] or 0)
-    posY:setPlaceholder(value[2] or 0)
-    posZ:setPlaceholder(value[3] or 0)
+    posX:setPlaceholder(tostring(value[1] or 0))
+    posY:setPlaceholder(tostring(value[2] or 0))
+    posZ:setPlaceholder(tostring(value[3] or 0))
 
     if options.tooltipText then
         label.interactive = 1
