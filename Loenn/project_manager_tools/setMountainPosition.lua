@@ -11,15 +11,15 @@ local detailScript = {
     tooltip = "Modify where your map appears in the overworld, as well as the overworld state when your map is selected.\nSee the Overworld Customisation page on the everest api wiki for more info on how to use this",
     parameters = {
         idlePosition = {0,0,0},
-        idleTarget = "",
-        selectPosition = "",
-        selectTarget = "",
-        zoomPosition = "",
-        zoomTarget = "",
-        cursor = "",
+        idleTarget = {0,0,0},
+        selectPosition = {0,0,0},
+        selectTarget = {0,0,0},
+        zoomPosition = {0,0,0},
+        zoomTarget = {0,0,0},
+        cursor = {0,0,0},
         state = 0,
         showCore = false,
-        rotate = true
+        rotate = false
     },
     tooltips = {
         idlePosition = "The position of the camera durring level selection on the overworld.",
@@ -34,9 +34,13 @@ local detailScript = {
         rotate = "Wether or not the camera should rotate oround the mountian"
     },
     fieldInformation = {
-        idlePosition = {
-            fieldType = "loennProjectManager.position3d"
-        },
+        idlePosition = {fieldType = "loennProjectManager.position3d"},
+        idleTarget = {fieldType = "loennProjectManager.position3d"},
+        selectPosition= {fieldType = "loennProjectManager.position3d"},
+        selectTarget = {fieldType = "loennProjectManager.position3d"},
+        zoomPosition = {fieldType = "loennProjectManager.position3d"},
+        zoomTarget = {fieldType = "loennProjectManager.position3d"},
+        cursor = {fieldType = "loennProjectManager.position3d"},
         state = {
             fieldType = "integer",
             options ={{"night",0},{"dawn",1},{"day",2},{"moon",3}}
@@ -75,5 +79,8 @@ function initScript.run(args)
     else
         initScript.nextScript = detailScript
     end
+end
+function detailScript.run(args)
+    logging.info(string.format("x: %s,y: %s, z: %s",args.idlePosition[1],args.idlePosition[2],args.idlePosition[3]))
 end
 return initScript

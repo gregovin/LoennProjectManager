@@ -1,8 +1,12 @@
 local ui = require("ui")
 local uiElements = require("ui.elements")
 local uiUtils = require("ui.utils")
-
+local contextMenu = require("ui.context_menu")
 local fieldDropdown = require("ui.widgets.field_dropdown")
+local configs = require("configs")
+local grid = require("ui.widgets.grid")
+local mods = require("mods")
+local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 
 local utils = require("utils")
 
@@ -24,12 +28,14 @@ local invalidStyle = {
 }
 
 function positionField._MT.__index:setValue(value)
-    self.currentText = {
+    self.currentTexts = {
         tostring(value[1]),tostring(value[2]),tostring(value[3])
     }
-    self.posX:setText(self.currentText[1])
-    self.posY:setText(self.currentText[2])
-    self.posZ:setText(self.currentText[3])
+    self.posX:setText(self.currentTexts[1])
+    self.posY:setText(self.currentTexts[2])
+    self.posZ:setText(self.currentTexts[3])
+    self.currentText = pUtils.listToString(self.currentTexts)
+    self.field:setText(self.currentText)
     self.currentValue = value
 end
 
@@ -51,6 +57,20 @@ function positionField._MT.__index:validateIdx(v)
 end
 function positionField._MT.__index:fieldsValid()
     return {self:validateIdx(self:getValue()[1]), self:validateIdx(self:getValue()[2]), self:validateIdx(self:getValue()[3])}
+end
+local function shouldShowMenu(element, x, y, button)
+    -- local menuButton = configs.editor.contextMenuButton
+    -- local actionButton = configs.editor.toolActionButton
+
+    -- if button == menuButton then
+    --     return true
+
+    -- elseif button == actionButton then
+    --     local drawX, drawY, width, height = getFieldPreviewArea(element)
+
+    --     return utils.aabbCheckInline(x, y, 1, 1, drawX, drawY, width, height)
+    -- end
+    return true
 end
 local function updateFieldStyle(formField, valid)
     -- Make sure the textbox visual style matches the input validity
@@ -91,8 +111,28 @@ local function fieldChanged(formField,col)
     return function(element, new, old)
         formField.currentValue[col] = #new>0 and tonumber(new)
         
+        formField.field:setText(pUtils.listToString(formField.currentValue))
         local valid = formField:fieldsValid()
         updateFieldStyle(formField, valid)
+        formField:notifyFieldChanged()
+    end
+end
+local function overUpdateFieldStyle(formField,valid)
+    local validVisuals = formField.overValidVisuals
+    if validVisuals ~=valid then
+        if not valid then
+            formField.field.style = invalidStyle
+        else
+            formField.field.style = nil
+        end
+        formField.overValidVisuals = valid
+        formField.field:repaint()
+    end
+end
+local function overFieldChanged(formField)
+    return function(element, new, old)
+        local valid = formField:fieldValid()
+        overUpdateFieldStyle(formField,valid)
         formField:notifyFieldChanged()
     end
 end
@@ -110,6 +150,10 @@ function positionField.getElement(name, value, options)
     local editable = options.editable
 
     local label = uiElements.label(options.displayName or name)
+    local field = uiElements.field(pUtils.listToString(value),overFieldChanged(formField)):with({
+        minWidth = minWidth,
+        maxWidth = maxWidth
+    })
     local posX = uiElements.field(tostring(value[1]), fieldChanged(formField,1)):with({
         minWidth = minWidth,
         maxWidth = maxWidth
@@ -132,7 +176,16 @@ function positionField.getElement(name, value, options)
     posX:setPlaceholder(tostring(value[1] or 0))
     posY:setPlaceholder(tostring(value[2] or 0))
     posZ:setPlaceholder(tostring(value[3] or 0))
-
+    local fieldContext = contextMenu.addContextMenu(
+        field,
+        function ()
+            return grid.getGrid({posX,posY,posZ},3)
+        end,
+        {
+            shouldShowMenu = shouldShowMenu,
+            mode = "focused"
+        }
+    )
     if options.tooltipText then
         label.interactive = 1
         label.tooltipText = options.tooltipText
@@ -144,14 +197,16 @@ function positionField.getElement(name, value, options)
     formField.posX = posX
     formField.posY = posY
     formField.posZ = posZ
+    formField.field = field
     formField.name = name
     formField.initialValue = value
     formField.currentValue = value
     formField.valueTransformer = valueTransformer
     formField.validVisuals = {true,true,true}
+    formField.overValidVisuals = true
     formField.width = 2
     formField.elements = {
-        label, posX,posY,posZ
+        label, fieldContext
     }
 
     formField = setmetatable(formField, positionField._MT)

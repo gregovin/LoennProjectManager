@@ -54,7 +54,7 @@ function pUtils.listToString(ls)
         return ls
     end
     for _,v in ipairs(ls) do
-        res = res .. sep .. v
+        res = res .. sep .. (v or "")
         sep = ','
     end
 
