@@ -46,16 +46,17 @@ function pUtils.getXmlString(location, projectDetails,alternate)
 end
 ---Renders a list to a string for displaying to the user
 ---@param ls any[] a list (ie ipairs iterable object) containing objects that can be representated as strings
+---@param sep string a string seperator for the printing
 ---@return string out the string to show to the end user
-function pUtils.listToString(ls)
-    local sep = ''
+function pUtils.listToString(ls, sep)
+    local innerSep = ''
     local res = ''
     if type(ls) ~= 'table' then
         return ls
     end
     for _,v in ipairs(ls) do
-        res = res .. sep .. (v or "")
-        sep = ','
+        res = res .. innerSep .. (v or "")
+        innerSep = sep or ','
     end
 
     return res

@@ -34,7 +34,7 @@ function positionField._MT.__index:setValue(value)
     self.posX:setText(self.currentTexts[1])
     self.posY:setText(self.currentTexts[2])
     self.posZ:setText(self.currentTexts[3])
-    self.currentText = pUtils.listToString(self.currentTexts)
+    self.currentText = pUtils.listToString(self.currentTexts, ", ")
     self.field:setText(self.currentText)
     self.currentValue = value
 end
@@ -111,7 +111,7 @@ local function fieldChanged(formField,col)
     return function(element, new, old)
         formField.currentValue[col] = #new>0 and tonumber(new)
         
-        formField.field:setText(pUtils.listToString(formField.currentValue))
+        formField.field:setText(pUtils.listToString(formField.currentValue, ", "))
         local valid = formField:fieldsValid()
         updateFieldStyle(formField, valid)
         formField:notifyFieldChanged()
@@ -145,26 +145,28 @@ function positionField.getElement(name, value, options)
 
     local minWidth = options.minWidth or options.width or 160
     local maxWidth = options.maxWidth or options.width or 160
+    local nMinWidth = options.nMinWidth or options.nWidth or 80
+    local nMaxWidth = options.nMaxWidth or options.nWidth or 80
     formField.minValue = options.minValue or -math.huge
     formField.maxValue = options.maxValue or math.huge
     local editable = options.editable
 
     local label = uiElements.label(options.displayName or name)
-    local field = uiElements.field(pUtils.listToString(value),overFieldChanged(formField)):with({
+    local field = uiElements.field(pUtils.listToString(value,", "),overFieldChanged(formField)):with({
         minWidth = minWidth,
         maxWidth = maxWidth
     })
     local posX = uiElements.field(tostring(value[1]), fieldChanged(formField,1)):with({
-        minWidth = minWidth,
-        maxWidth = maxWidth
+        minWidth = nMinWidth,
+        maxWidth = nMaxWidth
     })
     local posY = uiElements.field(tostring(value[2]), fieldChanged(formField,2)):with({
-        minWidth = minWidth,
-        maxWidth = maxWidth
+        minWidth = nMinWidth,
+        maxWidth = nMaxWidth
     })
     local posZ = uiElements.field(tostring(value[3]),fieldChanged(formField,3)):with({
-        minWidth = minWidth,
-        maxWidth = maxWidth
+        minWidth = nMinWidth,
+        maxWidth = nMaxWidth
     })
 
     if editable == false then
@@ -176,10 +178,16 @@ function positionField.getElement(name, value, options)
     posX:setPlaceholder(tostring(value[1] or 0))
     posY:setPlaceholder(tostring(value[2] or 0))
     posZ:setPlaceholder(tostring(value[3] or 0))
+    local x = uiElements.label("x")
+    local y = uiElements.label("y")
+    local z = uiElements.label("z")
     local fieldContext = contextMenu.addContextMenu(
         field,
         function ()
-            return grid.getGrid({posX,posY,posZ},3)
+            return grid.getGrid({
+                x,y,z,
+                posX,posY,posZ
+            },3)
         end,
         {
             shouldShowMenu = shouldShowMenu,
