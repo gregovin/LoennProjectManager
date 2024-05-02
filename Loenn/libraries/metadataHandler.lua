@@ -1,3 +1,11 @@
+local fileLocations = require("file_locations")
+local fileSystem = require("utils.filesystem")
+local utils = require("utils")
+local yaml = require("lib.yaml")
+local notifications = require("ui.notification")
+local logging = require("logging")
+local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
+
 local metadataHandler = {}
 
 metadataHandler.vanillaMountainConfig = {}
@@ -187,4 +195,30 @@ metadataHandler.vanillaMountainConfig["Farewell"] = {
     }
 }
 
+metadataHandler.loadedData = {}
+function metadataHandler.clearMetadata()
+    metadataHandler.loadedData = {}
+end
+local function tryReadData(path)
+    local content = utils.readAll(path)
+    return yaml.read(utils.stripByteOrderMark(content))
+end
+function metadataHandler.readMetadata(projectDetails)
+    --read meta.yaml
+    local location = fileSystem.joinpath(modsDir,projectDetails.name,"Maps",projectDetails.username,
+        projectDetails.campaign,projectDetails.map..".meta.yaml")
+    if fileSystem.isFile(location) then
+        local success, data = pcall(tryReadData,location)
+        if not success then
+            logging.warning("[Loenn Project Manager] Failed to read "..location.." due to the following error:\n"..data)
+            notifications.notify("Failed to read "..location)
+        end
+        metadataHandler.loadedData = data
+    end
+    metadataHandler.loadedData = {}
+end
+
+function metadataHandler.getKey(k)
+    return metadataHandler and metadataHandler[k]
+end
 return metadataHandler;

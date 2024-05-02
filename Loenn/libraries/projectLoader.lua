@@ -8,6 +8,7 @@ local settings = mods.requireFromPlugin("libraries.settings")
 local logging = require("logging")
 local p_utils= mods.requireFromPlugin("libraries.projectUtils")
 local tilesetHandler = mods.requireFromPlugin("libraries.tilesetHandler")
+local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
 local fileLocations = require("file_locations")
 
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
@@ -115,6 +116,7 @@ end
 ---A helper function which clears loenn PM's metadata cache. Should be called whenever a new map is loaded
 function loaders.clearMetadataCache()
     tilesetHandler.clearTilesetCache()
+    metadataHandler.clearMetadata()
     loaders.cacheValid = false
 end
 local function passIfFile(path)
@@ -148,6 +150,8 @@ function loaders.loadMetadataDetails(projectDetails)
     settings.set("foregroundTilesXml",foregroundTilesXml,"recentProjectInfo")
     settings.set("backgroundTilesXml",backgroundTilesXml,"recentProjectInfo")
     settings.set("animatedTilesXml",animatedTilesXml,"recentProjectInfo")
+
+    metadataHandler.readMetadata(projectDetails)
     loaders.cacheValid = true
 end
 return loaders
