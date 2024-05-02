@@ -17,11 +17,6 @@ positionField.fieldType = "loennProjectManager.position3d"
 positionField._MT = {}
 positionField._MT.__index = {}
 
-local warningStyle = {
-    normalBorder = {0.65, 0.5, 0.2, 0.9, 2.0},
-    focusedBorder = {0.9, 0.67, 0.2, 1.0, 2.0}
-}
-
 local invalidStyle = {
     normalBorder = {0.65, 0.2, 0.2, 0.9, 2.0},
     focusedBorder = {0.9, 0.2, 0.2, 1.0, 2.0}
