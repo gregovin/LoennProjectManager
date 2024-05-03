@@ -1,9 +1,7 @@
-local logging = require("logging")
 local mods = require("mods")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
 local projectLoader =  mods.requireFromPlugin("libraries.projectLoader")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
-local utils = require("utils")
 
 local detailScript = {
     name = "setMountainPos",
