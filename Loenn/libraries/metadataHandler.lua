@@ -206,18 +206,23 @@ local function tryReadData(path)
 end
 function metadataHandler.readMetadata(projectDetails)
     --read meta.yaml
-    local location = fileSystem.joinpath(modsDir,projectDetails.name,"Maps",projectDetails.username,
-        projectDetails.campaign,projectDetails.map..".meta.yaml")
+    local fLocal = fileSystem.joinpath(modsDir,projectDetails.name,"Maps",projectDetails.username,
+    projectDetails.campaign)
+    local location = fileSystem.joinpath(fLocal,projectDetails.map..".meta.yaml")
     if fileSystem.isFile(location) then
         logging.info("[Loenn Project Manager] Reading meta.yaml at "..location)
         local success, data = pcall(tryReadData,location)
         if not success then
             logging.warning("[Loenn Project Manager] Failed to read "..location.." due to the following error:\n"..data)
             notifications.notify("Failed to read "..location)
+            return
         end
         metadataHandler.loadedFile = location
         metadataHandler.loadedData = data
-    else
+    else if fileSystem.isDirectory(fLocal) then
+        metadataHandler.loadedFile = location
+        metadataHandler.loadedData = {}
+    end
         metadataHandler.loadedData = {}
     end
 end
