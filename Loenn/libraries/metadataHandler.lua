@@ -4,6 +4,7 @@ local utils = require("utils")
 local yaml = require("lib.yaml")
 local notifications = require("ui.notification")
 local logging = require("logging")
+local xml2lua = require("lib.xml2lua.xml2lua")
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
 
 local metadataHandler = {}
@@ -208,17 +209,49 @@ function metadataHandler.readMetadata(projectDetails)
     local location = fileSystem.joinpath(modsDir,projectDetails.name,"Maps",projectDetails.username,
         projectDetails.campaign,projectDetails.map..".meta.yaml")
     if fileSystem.isFile(location) then
+        logging.info("[Loenn Project Manager] Reading meta.yaml at "..location)
         local success, data = pcall(tryReadData,location)
         if not success then
             logging.warning("[Loenn Project Manager] Failed to read "..location.." due to the following error:\n"..data)
             notifications.notify("Failed to read "..location)
         end
+        metadataHandler.loadedFile = location
         metadataHandler.loadedData = data
+    else
+        metadataHandler.loadedData = {}
     end
-    metadataHandler.loadedData = {}
 end
 
 function metadataHandler.getKey(k)
-    return metadataHandler and metadataHandler[k]
+    return metadataHandler.loadedData and metadataHandler.loadedData[k]
+end
+function metadataHandler.getNestedValue(keys)
+    local v = metadataHandler.loadedData
+    for i, key in ipairs(keys) do
+        v = v[key]
+        if not v then
+            return nil
+        end
+    end
+    return v
+end
+local function recUpdate(tabl, newData)
+    for k,v in pairs(newData) do
+        if type(v) == "table" then
+            if tabl[k] then
+                recUpdate(tabl[k],v)
+            else
+                tabl[k] = v
+            end
+        else
+            tabl[k] = v
+        end
+    end
+end
+--update the metadata to set the keys in newData as they are
+function metadataHandler.update(newData)
+    recUpdate(metadataHandler.loadedData,newData)
+    local success, reason = yaml.write(metadataHandler.loadedFile,metadataHandler.loadedData)
+    return success, reason
 end
 return metadataHandler;

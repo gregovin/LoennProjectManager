@@ -1,6 +1,8 @@
 local logging = require("logging")
 local mods = require("mods")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
+local projectLoader =  mods.requireFromPlugin("libraries.projectLoader")
+local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local utils = require("utils")
 
 local detailScript = {
@@ -59,7 +61,6 @@ local initScript = {
     tooltip = "Modify where your map appears in the overworld, as well as the overworld state when your map is selected.\nSee the Overworld Customisation page on the everest api wiki for more info on how to use this",
     parameters = {
         copy = "",
-        overideOtherConfig=true,
     },
     tooltips = {
         copy = "The map whose details to copy. Leave unset to specify the details manually",
@@ -72,15 +73,90 @@ local initScript = {
     },
     fieldOrder = {"copy","overideOtherConfig"}
 }
+local function arrayIfyList(ls)
+    return "[".. pUtils.listToString(ls, ", ").."]"
+end
 function initScript.run(args)
+    metadataHandler.readMetadata(pUtils.getProjectDetails())
     if args.copy ~="" then
         local appliedConf = metadataHandler.vanillaMountainConfig[args.copy]
         initScript.nextScript = nil
+        local newData = {
+            ["Mountain"] = {
+                ["Idle"] = {
+                    ["Position"] = arrayIfyList(appliedConf.idle.position),
+                    ["Target"] = arrayIfyList(appliedConf.idle.target)
+                },
+                ["Select"] = {
+                    ["Position"] = arrayIfyList(appliedConf.select.position),
+                    ["Target"] = arrayIfyList(appliedConf.select.target)
+                },
+                ["Zoom"] = {
+                    ["Position"] = arrayIfyList(appliedConf.zoom.position),
+                    ["Target"] = arrayIfyList(appliedConf.zoom.target)
+                },
+                ["Cursor"] = arrayIfyList(appliedConf.cursor),
+                ["State"] = appliedConf.state,
+                ["ShowCore"] = appliedConf.showCore,
+                ["Rotate"] = appliedConf.rotate
+            }
+        }
+        metadataHandler.update(newData)
     else
         initScript.nextScript = detailScript
     end
 end
+function detailScript.prerun()
+    local projectDetails = pUtils.getProjectDetails()
+    if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
+        projectLoader.assertStateValid(projectDetails)
+        if not projectLoader.cacheValid then
+            projectLoader.loadMetadataDetails(projectDetails)
+        end
+        detailScript.parameters.idlePosition = metadataHandler.getNestedValue({"Mountain","Idle","Position"}) or {0.0,0.0,0.0}
+        detailScript.parameters.idleTarget = metadataHandler.getNestedValue({"Mountain","Idle","Target"}) or {0.0,0.0,0.0}
+        detailScript.parameters.selectPosition = metadataHandler.getNestedValue({"Mountain","Select","Position"}) or {0.0,0.0,0.0}
+        detailScript.parameters.selectTarget = metadataHandler.getNestedValue({"Mountain","Select","Target"}) or {0.0,0.0,0.0}
+        detailScript.parameters.zoomPosition = metadataHandler.getNestedValue({"Mountain","Zoom","Position"}) or {0.0,0.0,0.0}
+        detailScript.parameters.zoomTarget = metadataHandler.getNestedValue({"Mountain","Zoom","Target"}) or {0.0,0.0,0.0}
+        detailScript.parameters.cursor = metadataHandler.getNestedValue({"Mountain","Cursor"}) or {0.0,0.0,0.0}
+        detailScript.parameters.state = metadataHandler.getNestedValue({"Mountain","State"}) or 0
+        detailScript.parameters.showCore = metadataHandler.getNestedValue({"Mountain","ShowCore"}) or false
+        detailScript.parameters.rotate = metadataHandler.getNestedValue({"Mountain","Rotate"}) or false
+
+    elseif not projectDetails.name then
+        error("Cannot find tilesets because no project is selected!",2)
+    elseif not projectDetails.username then
+        error("Cannot find tilesets because no username is selected. This should not happen",2)
+    elseif not projectDetails.campaign then
+        error("Cannot find tilesets because no campaign is selected!",2)
+    else
+        error("Cannot find tilesets because no map is selected!",2)
+    end
+end
+
 function detailScript.run(args)
-    logging.info(string.format("x: %s,y: %s, z: %s",args.idlePosition[1],args.idlePosition[2],args.idlePosition[3]))
+    projectLoader.assertStateValid(pUtils.getProjectDetails())
+    local newData = {
+        ["Mountain"]= {
+            ["Idle"] = {
+                ["Position"] = arrayIfyList(args.idlePosition),
+                ["Target"] = arrayIfyList(args.idleTarget)
+            },
+            ["Select"] = {
+                ["Position"] = arrayIfyList(args.selectPosition),
+                ["Target"] = arrayIfyList(args.selectTarget)
+            },
+            ["Zoom"] = {
+                ["Position"] = arrayIfyList(args.zoomPosition),
+                ["Target"] = arrayIfyList(args.zoomTarget)
+            },
+            ["Cursor"] = arrayIfyList(args.cursor),
+            ["State"] = args.state,
+            ["ShowCore"] = args.showCore,
+            ["Rotate"] =args.rotate
+        }
+    }
+    metadataHandler.update(newData)
 end
 return initScript
