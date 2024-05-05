@@ -54,18 +54,19 @@ function positionField._MT.__index:fieldsValid()
     return {self:validateIdx(self:getValue()[1]), self:validateIdx(self:getValue()[2]), self:validateIdx(self:getValue()[3])}
 end
 local function shouldShowMenu(element, x, y, button)
-    -- local menuButton = configs.editor.contextMenuButton
-    -- local actionButton = configs.editor.toolActionButton
+    local menuButton = configs.editor.contextMenuButton
+    local actionButton = configs.editor.toolActionButton
 
-    -- if button == menuButton then
-    --     return true
+    if button == menuButton or button == actionButton then
+        return true
+    end
 
     -- elseif button == actionButton then
     --     local drawX, drawY, width, height = getFieldPreviewArea(element)
 
     --     return utils.aabbCheckInline(x, y, 1, 1, drawX, drawY, width, height)
     -- end
-    return true
+    return false
 end
 local function updateFieldStyle(formField, valid)
     -- Make sure the textbox visual style matches the input validity
