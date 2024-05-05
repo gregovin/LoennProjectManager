@@ -28,6 +28,7 @@ if supportedLonnVersion >= currentLonnVersion then
     safeAddImporter("addRemoteFgTileset")
     safeAddImporter("addRemoteBgTileset")
     safeAddImporter("setMountainPosition")
+    safeAddImporter("configureOverworld")
 else 
     safeAddImporter("versionNotif")
 end
