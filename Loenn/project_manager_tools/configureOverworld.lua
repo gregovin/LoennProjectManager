@@ -48,5 +48,48 @@ local script = {
     },
     fieldOrder = {"fogColors","showSnow","starFogColor","starStreamColors","starBeltColors1","starBeltColors2"}
 }
+function script.prerun()
+    local projectDetails = pUtils.getProjectDetails()
+    if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
+        projectLoader.assertStateValid(projectDetails)
+        if not projectLoader.cacheValid then
+            projectLoader.loadMetadataDetails(projectDetails)
+        end
+        script.parameters.fogColors = metadataHandler.getNestedValueOrDefault({"Mountain","FogColors"})
+        script.parameters.showSnow = metadataHandler.getNestedValueOrDefault({"Mountain","ShowSnow"})
+        script.parameters.starFogColor = metadataHandler.getNestedValueOrDefault({"Mountain","StarFogColor"})
+        script.parameters.starStreamColors = metadataHandler.getNestedValueOrDefault({"Mountain","StarStreamColors"})
+        script.parameters.starBeltColors1 = metadataHandler.getNestedValueOrDefault({"Mountain","StarBeltColors1"})
+        script.parameters.starBeltColors2 = metadataHandler.getNestedValueOrDefault({"Mountain","StarBeltColors2"})
 
+    elseif not projectDetails.name then
+        error("Cannot find tilesets because no project is selected!",2)
+    elseif not projectDetails.username then
+        error("Cannot find tilesets because no username is selected. This should not happen",2)
+    elseif not projectDetails.campaign then
+        error("Cannot find tilesets because no campaign is selected!",2)
+    else
+        error("Cannot find tilesets because no map is selected!",2)
+    end
+end
+function script.run(args)
+    local projectDetails = pUtils.getProjectDetails()
+    projectLoader.assertStateValid(projectDetails)
+
+    metadataHandler.setNestedIfNotDefault({"Mountain","FogColors"},args.fogColors)
+    metadataHandler.setNestedIfNotDefault({"Mountain","ShowSnow"},args.showSnow)
+    metadataHandler.setNestedIfNotDefault({"Mountain","StarFogColor"},args.starFogColor)
+    metadataHandler.setNestedIfNotDefault({"Mountain","StarStreamColors"},args.starStreamColors)
+    local beltC1 = args.starBeltColors1
+    if #beltC1 == 0 then
+        beltC1 = "[]"
+    end
+    local beltC2 = args.starBeltColors2
+    if #beltC2 == 0 then
+        beltC2 = "[]"
+    end
+    metadataHandler.setNestedIfNotDefault({"Mountain","StarBeltColors1"},beltC1)
+    metadataHandler.setNestedIfNotDefault({"Mountain","StarBeltColors2"},beltC2)
+    metadataHandler.update({})
+end
 return script
