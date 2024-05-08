@@ -234,7 +234,7 @@ function expGridElement.getGrid(elements, columnCount, buttonOptions, createElem
             end
             
             column -= 1
-            if column <= 1 and rows <= 2 then
+            if column <= 0 and rows <= 2 then
                 column += 1
                 return
             end
