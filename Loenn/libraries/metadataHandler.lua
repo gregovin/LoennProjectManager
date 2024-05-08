@@ -259,4 +259,57 @@ function metadataHandler.update(newData)
     local success, reason = yaml.write(metadataHandler.loadedFile,metadataHandler.loadedData)
     return success, reason
 end
+local function recSetNested(v,idx,keys,new)
+    if idx == #keys then
+        v[keys[#keys]] = new
+    elseif idx< #keys then
+        v[keys[idx]] = v[keys[idx]] or {}
+        recSetNested(v[keys[idx]],idx+1,keys,new)
+    end
+end
+function metadataHandler.setNested(v,keys, new)
+    recSetNested(v, 1, keys, new)
+end
+metadataHandler.defaults = {
+    ["Mountain"] = {
+        ["ShowSnow"] = true,
+        ["FogColors"] = {
+            "010817","13203E","281A35","010817"
+        },
+        ["StarFogColor"]="020915",
+        ["StarStreamColors"]={
+            "000000",
+            "9228e2",
+            "30ffff"
+        },
+        ["StarBeltColors1"] = {
+            "53f3dd",
+            "53c9f3",
+        },
+        ["StarBeltColors2"] = {
+            "ab6ffa",
+            "fa70ea"
+        }
+    }
+}
+function metadataHandler.getDefault(keys)
+    local v = metadataHandler.defaults
+    for i, key in ipairs(keys) do
+        v = v[key]
+        if not v then
+            return nil
+        end
+    end
+    return v
+end
+function metadataHandler.setNestedIfNotDefault(keys,newVal)
+    if newVal == metadataHandler.getDefault(keys) then
+        metadataHandler.setNested(metadataHandler.loadedData,keys,nil)
+    else
+        metadataHandler.setNested(metadataHandler.loadedData,keys, newVal)
+    end
+end
+function metadataHandler.getNestedValueOrDefault(keys)
+    return metadataHandler.getNestedValue(keys) or metadataHandler.getDefault(keys)
+end
 return metadataHandler;
