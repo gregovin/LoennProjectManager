@@ -40,13 +40,13 @@ local script = {
             labels = {"Stream 1", "Stream 2", "Stream 3"}
         },
         starBeltColors1 = {
-            --worse problems. Needs a field capable of adding an arbitrary number of colors
+            fieldType = "loennProjectManager.expandableColorList"
         },
         starBeltColors2 = {
-            --same problems as starBeltColors1
+            fieldType = "loennProjectManager.expandableColorList"
         }
     },
-    fieldOrder = {"showSnow","fogColors","starFogColor","starStreamColors","starBeltColors1","starBeltColors2"}
+    fieldOrder = {"fogColors","showSnow","starFogColor","starStreamColors","starBeltColors1","starBeltColors2"}
 }
 
 return script
