@@ -308,8 +308,7 @@ function colorListField.getElement(name, value, options)
                     table.remove(value)
                     table.remove(formField.colors)
                     table.remove(colorContexts)
-                    local changed = innerFieldChanged(formField,#value)
-                    changed(formField,value[#value])
+                    field:setText(pUtils.listToString(fixNumberColors(value),", "))
                 end)
             end,
         {
