@@ -201,17 +201,18 @@ function colorListField.getElement(name, value, options)
 
     local minWidth = options.minWidth or options.width or 160
     local maxWidth = options.maxWidth or options.width or 160
+    local innerMinWidth = options.innerMinWidth or options.innerWidth or 80
+    local innerMaxWidth = options.innerMinWidth or options.innerWidth or 80
     local allowXNAColors = options.allowXNAColors
     local allowEmpty = options.allowEmpty
 
     local label = uiElements.label(options.displayName or name)
     formField.colors = {}
     local colorContexts = {}
-    local labels = {}
     for i,v in ipairs(value) do
         local field = uiElements.field(v or fallbackHexColor, innerFieldChanged(formField,i)):with({
-            minWidth = minWidth,
-            maxWidth = maxWidth,
+            minWidth = innerMinWidth,
+            maxWidth = innerMaxWidth,
             _allowXNAColors = allowXNAColors,
             _allowEmpty = allowEmpty
         }):hook({
