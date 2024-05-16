@@ -12,7 +12,7 @@ function fallibleSnapshot.create(description,data,backward,forward)
         if data.success then
             data.success,data.message=pcall(backward,data)
             if not data.success then
-                logging.info(data.message)
+                logging.warning(data.message)
                 notifications.notify(data.message)
             end
             return data.success
