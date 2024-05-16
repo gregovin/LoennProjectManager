@@ -289,7 +289,11 @@ metadataHandler.defaults = {
         ["StarBeltColors2"] = {
             "ab6ffa",
             "fa70ea"
-        }
+        },
+        ["BackgroundMusic"] = "",
+        ["BackgroundAmbience"] = "",
+        ["BackgroundMusicParams"] = {},
+        ["BackgroundAmbienceParams"] = {}
     }
 }
 function metadataHandler.getDefault(keys)
