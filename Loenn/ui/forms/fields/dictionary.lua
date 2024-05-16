@@ -222,7 +222,7 @@ function dictionaryField.getElement(name,value,options)
     })
     local fieldWithConext = contextMenu.addContextMenu(field,
         function ()
-            return expandableGrid.getGrid(formField.rows,4,{minWidth=keyMinWidth,maxWidth=keyMaxWidth},
+            return expandableGrid.getGrid(formField.rows,4,{minWidth=((keyMinWidth+valueMinWidth-20)/2),maxWidth=((keyMaxWidth+valueMaxWidth-20)/2)},
                 function ()
                     table.insert(value.keys,"")
                     table.insert(value.values,"")

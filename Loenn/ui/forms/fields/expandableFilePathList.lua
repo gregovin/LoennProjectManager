@@ -100,7 +100,7 @@ function directFilepathList.getElement(name, value, options)
         formField.files[i] = innerButton
     end
     local buttonContext =  contextMenu.addContextMenu(button,function ()
-        return expandableGrid.getGrid(formField.files,3,{minWidth=innerMinWidth/2,maxWidth=innerMaxWidth/2},
+        return expandableGrid.getGrid(formField.files,3,{minWidth=((innerMinWidth-25)/2),maxWidth=((innerMaxWidth-25)/2)},
             function ()
                 table.insert(value,"")
 
