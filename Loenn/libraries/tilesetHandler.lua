@@ -360,11 +360,9 @@ end
 ---@param target string the location the file should be moved or copied to
 function handler.mvOrCPtileset(copyFile, tilesetFile, target)
     local success,message
-    logging.info("Destination file: "..target)
     if copyFile then
         success,message = fileSystem.copy(tilesetFile,target)
     else
-        logging.info(target)
         success,message = fileSystem.rename(tilesetFile,target)
     end
     return success,message
