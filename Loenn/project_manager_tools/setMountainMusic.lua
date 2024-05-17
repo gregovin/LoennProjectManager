@@ -2,10 +2,7 @@ local mods = require("mods")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
-local fileLocations = require("file_locations")
-local fileSystem = require("utils.filesystem")
 local logging = require("logging")
-local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
 
 local function musicValidator(s)
     return s=="" or (string.match(s,"^event:/") and not string.match(s,"//"))
@@ -78,6 +75,10 @@ function script.prerun()
             table.insert(parsedAmbienceParams.keys,k)
             table.insert(parsedAmbienceParams.values,v)
         end
+        if #parsedAmbienceParams == 0 then
+            parsedAmbienceParams.keys = {""}
+            parsedAmbienceParams.values = {""}
+        end
         script.parameters.backgroundAmbienceParams = parsedAmbienceParams
     elseif not projectDetails.name then
         error("Cannot find tilesets because no project is selected!",2)
@@ -110,6 +111,6 @@ function script.run(args)
         end
     end
     metadataHandler.setNestedIfNotDefault({"Mountain","BackgroundAmbienceParams"},repackedAmbienceParams)
-    metadataHandler.update({})
+    local success, reason = metadataHandler.write()
 end
 return script
