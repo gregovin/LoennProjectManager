@@ -2,6 +2,8 @@ local fileLocations = require("file_locations")
 local fileSystem = require("utils.filesystem")
 local utils = require("utils")
 local yaml = require("lib.yaml")
+local mods = require("mods")
+local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local notifications = require("ui.notification")
 local logging = require("logging")
 local xml2lua = require("lib.xml2lua.xml2lua")
@@ -204,6 +206,7 @@ local function tryReadData(path)
     local content = utils.readAll(path)
     return yaml.read(utils.stripByteOrderMark(content))
 end
+
 function metadataHandler.readMetadata(projectDetails)
     --read meta.yaml
     local fLocal = fileSystem.joinpath(modsDir,projectDetails.name,"Maps",projectDetails.username,
@@ -253,23 +256,6 @@ local function recUpdate(tabl, newData)
         end
     end
 end
---update the metadata to set the keys in newData as they are
-function metadataHandler.update(newData)
-    recUpdate(metadataHandler.loadedData,newData)
-    local success, reason = yaml.write(metadataHandler.loadedFile,metadataHandler.loadedData)
-    return success, reason
-end
-local function recSetNested(v,idx,keys,new)
-    if idx == #keys then
-        v[keys[#keys]] = new
-    elseif idx< #keys then
-        v[keys[idx]] = v[keys[idx]] or {}
-        recSetNested(v[keys[idx]],idx+1,keys,new)
-    end
-end
-function metadataHandler.setNested(v,keys, new)
-    recSetNested(v, 1, keys, new)
-end
 metadataHandler.defaults = {
     ["Mountain"] = {
         ["ShowSnow"] = true,
@@ -296,6 +282,60 @@ metadataHandler.defaults = {
         ["BackgroundAmbienceParams"] = {}
     }
 }
+local function briefList(v)
+    return "["..pUtils.listToString(v).."]"
+end
+metadataHandler.transformers = {
+    ["Mountain"] = {
+        ["Cursor"] = {transform=briefList},
+        ["Idle"] = {
+            ["Position"] = {transform=briefList},
+            ["Target"] = {transform=briefList}
+        },
+        ["Select"] = {
+            ["Position"] = {transform=briefList},
+            ["Target"] = {transform=briefList}
+        },
+        ["Zoom"] = {
+            ["Position"] = {transform=briefList},
+            ["Target"] = {transform=briefList}
+        }
+    }
+}
+local function sanatizeData(data,transformers)
+    local out = {}
+    for k,v in pairs(data) do
+        if transformers[k] then
+            if transformers[k].transform then
+                out[k]=transformers[k].transform(v)
+            else
+                out[k]=sanatizeData(v,transformers[k])
+            end
+        else
+            out[k]=v
+        end
+    end
+    return out
+end
+--update the metadata to set the keys in newData as they are
+function metadataHandler.update(newData)
+    recUpdate(metadataHandler.loadedData,newData)
+    local sanData = sanatizeData(metadataHandler.loadedData,metadataHandler.transformers)
+    local success, reason = yaml.write(metadataHandler.loadedFile,sanData)
+    return success, reason
+end
+local function recSetNested(v,idx,keys,new)
+    if idx == #keys then
+        v[keys[#keys]] = new
+    elseif idx< #keys then
+        v[keys[idx]] = v[keys[idx]] or {}
+        recSetNested(v[keys[idx]],idx+1,keys,new)
+    end
+end
+function metadataHandler.setNested(v,keys, new)
+    recSetNested(v, 1, keys, new)
+end
+
 function metadataHandler.getDefault(keys)
     local v = metadataHandler.defaults
     for i, key in ipairs(keys) do
@@ -316,4 +356,9 @@ end
 function metadataHandler.getNestedValueOrDefault(keys)
     return metadataHandler.getNestedValue(keys) or metadataHandler.getDefault(keys)
 end
+function metadataHandler.write()
+    local success, reason = yaml.write(metadataHandler.loadedFile,sanatizeData(metadataHandler.loadedData,metadataHandler.transformers))
+    return success, reason
+end
+
 return metadataHandler;
