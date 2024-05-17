@@ -82,18 +82,18 @@ function initScript.run(args)
         local newData = {
             ["Mountain"] = {
                 ["Idle"] = {
-                    ["Position"] = arrayIfyList(appliedConf.idle.position),
-                    ["Target"] = arrayIfyList(appliedConf.idle.target)
+                    ["Position"] =appliedConf.idle.position,
+                    ["Target"] = appliedConf.idle.target
                 },
                 ["Select"] = {
-                    ["Position"] = arrayIfyList(appliedConf.select.position),
-                    ["Target"] = arrayIfyList(appliedConf.select.target)
+                    ["Position"] = appliedConf.select.position,
+                    ["Target"] = appliedConf.select.target
                 },
                 ["Zoom"] = {
-                    ["Position"] = arrayIfyList(appliedConf.zoom.position),
-                    ["Target"] = arrayIfyList(appliedConf.zoom.target)
+                    ["Position"] = appliedConf.zoom.position,
+                    ["Target"] = appliedConf.zoom.target
                 },
-                ["Cursor"] = arrayIfyList(appliedConf.cursor),
+                ["Cursor"] = appliedConf.cursor,
                 ["State"] = appliedConf.state,
                 ["ShowCore"] = appliedConf.showCore,
                 ["Rotate"] = appliedConf.rotate
@@ -138,18 +138,18 @@ function detailScript.run(args)
     local newData = {
         ["Mountain"]= {
             ["Idle"] = {
-                ["Position"] = arrayIfyList(args.idlePosition),
-                ["Target"] = arrayIfyList(args.idleTarget)
+                ["Position"] = args.idlePosition,
+                ["Target"] = args.idleTarget
             },
             ["Select"] = {
-                ["Position"] = arrayIfyList(args.selectPosition),
-                ["Target"] = arrayIfyList(args.selectTarget)
+                ["Position"] = args.selectPosition,
+                ["Target"] = args.selectTarget
             },
             ["Zoom"] = {
-                ["Position"] = arrayIfyList(args.zoomPosition),
-                ["Target"] = arrayIfyList(args.zoomTarget)
+                ["Position"] = args.zoomPosition,
+                ["Target"] = args.zoomTarget
             },
-            ["Cursor"] = arrayIfyList(args.cursor),
+            ["Cursor"] = args.cursor,
             ["State"] = args.state,
             ["ShowCore"] = args.showCore,
             ["Rotate"] =args.rotate
