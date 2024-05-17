@@ -129,7 +129,8 @@ function script.run(args)
         if not fileSystem.isDirectory(script.textureLocale) then
             fileSystem.mkpath(script.textureLocale)
         end
-        metadataHandler.loadedData["Mountain"]["MountainTextureDirectory"] = pUtils.pathDiff(fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Mountain"),script.textureLocale)
+        local path = pUtils.pathDiff(fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Mountain"),script.textureLocale)
+        metadataHandler.setNested(metadataHandler.loadedData,{"Mountain","MountainTextureDirectory"},string.gsub(path,"\\","/"))
         for _,v in ipairs(textures) do
             local target = fileSystem.joinpath(script.textureLocale,fileSystem.filename(v))
             fileSystem.copy(v,target)
@@ -157,7 +158,8 @@ function script.run(args)
         if not fileSystem.isDirectory(script.mountainModelLocale) then
             fileSystem.mkpath(script.mountainModelLocale)
         end
-        metadataHandler.setNested(metadataHandler.loadedData,{"Mountain","MountainModelDirectory"},pUtils.pathDiff(fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases"),script.mountainModelLocale))
+        local path = pUtils.pathDiff(fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases"),script.mountainModelLocale)
+        metadataHandler.setNested(metadataHandler.loadedData,{"Mountain","MountainModelDirectory"},string.gsub(path,"\\","/"))
         for _,v in models do
             local target = fileSystem.joinpath(script.mountainModelLocale,fileSystem.filename(v))
             fileSystem.copy(v,target)
