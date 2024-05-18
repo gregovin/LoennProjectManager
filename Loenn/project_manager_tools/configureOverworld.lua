@@ -1,6 +1,10 @@
 local mods = require("mods")
+local utils = require("utils")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
+local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 local projectLoader =  mods.requireFromPlugin("libraries.projectLoader")
+local history = require("history")
+local logging = require("logging")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 
 local script = {
@@ -75,7 +79,7 @@ end
 function script.run(args)
     local projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
-
+    local dataBefore = utils.deepcopy(metadataHandler.loadedData)
     metadataHandler.setNestedIfNotDefault({"Mountain","FogColors"},args.fogColors)
     metadataHandler.setNestedIfNotDefault({"Mountain","ShowSnow"},args.showSnow)
     metadataHandler.setNestedIfNotDefault({"Mountain","StarFogColor"},args.starFogColor)
@@ -90,6 +94,29 @@ function script.run(args)
     end
     metadataHandler.setNestedIfNotDefault({"Mountain","StarBeltColors1"},beltC1)
     metadataHandler.setNestedIfNotDefault({"Mountain","StarBeltColors2"},beltC2)
-    metadataHandler.update({})
+    local dataAfter = utils.deepcopy(metadataHandler.loadedData)
+    local forward = function ()
+        metadataHandler.loadedData = dataAfter
+        local success, result = metadataHandler.update({})
+        if not success then
+            metadataHandler.loadedData = dataBefore
+        end
+        return success, "Failed to write metadata!"
+    end
+    local backward = function ()
+        metadataHandler.loadedData = dataBefore
+        local success, result = metadataHandler.update({})
+        if not success then
+            metadataHandler.loadedData = dataAfter
+        end
+        return success, "Failed to write metadata!"
+    end
+    local success, message = forward()
+    if not success then 
+        logging.warning(message)
+        return
+    end
+    local snap = fallibleSnapshot.create("Configure Overworld",{success=true},backward,forward)
+    history.addSnapshot(snap)
 end
 return script

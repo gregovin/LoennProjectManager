@@ -4,9 +4,11 @@ local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
 local fileLocations = require("file_locations")
 local fileSystem = require("utils.filesystem")
-local logging = require("logging")
 local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
-
+local utils = require("utils")
+local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
+local history = require("history")
+local logging = require("logging")
 
 local script = {
     name = "setMountainTextures",
@@ -125,6 +127,7 @@ function script.run(args)
             end
         end
     end
+    local dataBefore = utils.deepcopy(metadataHandler.loadedData)
     if #textures>0 then
         if not fileSystem.isDirectory(script.textureLocale) then
             fileSystem.mkpath(script.textureLocale)
@@ -167,6 +170,25 @@ function script.run(args)
     else
         metadataHandler.setNested(metadataHandler.loadedData,{"Mountain","MountainModelDirectory"},nil)
     end
-    local success, reason = metadataHandler.update({})
+    local dataAfter = utils.deepcopy(metadataHandler.loadedData)
+    local forward = function ()
+        metadataHandler.loadedData = dataAfter
+        local success, reason = metadataHandler.write()
+        if not success then metadataHandler.loadedData = dataBefore end
+        return success, "Failed to write metadata"
+    end
+    local backward = function ()
+        metadataHandler.loadedData = dataBefore
+        local success, reason = metadataHandler.write()
+        if not success then metadataHandler.loadedData = dataAfter end
+        return success, "Failed to write metadata"
+    end
+    local success, message = forward()
+    if not success then 
+        logging.warning(message)
+        return
+    end
+    local snap = fallibleSnapshot.create("Set Music",{success=true},backward,forward)
+    history.addSnapshot(snap)
 end
 return script

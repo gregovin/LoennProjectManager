@@ -346,8 +346,28 @@ function metadataHandler.getDefault(keys)
     end
     return v
 end
+local function equal(table1, table2)
+    if type(table1) ~= type(table2) then return false end
+    if type(table1) == "table" then
+        local keys = {}
+        for k,v in pairs(table1) do
+            keys[k] = true
+            if not equal(v, table2[k]) then
+                return false
+            end
+        end
+        for k,_ in pairs(table2) do
+            if not keys[k] then
+                return false
+            end
+        end
+        return true
+    else
+        return table1==table2
+    end
+end
 function metadataHandler.setNestedIfNotDefault(keys,newVal)
-    if newVal == metadataHandler.getDefault(keys) then
+    if equal(newVal, metadataHandler.getDefault(keys)) then
         metadataHandler.setNested(metadataHandler.loadedData,keys,nil)
     else
         metadataHandler.setNested(metadataHandler.loadedData,keys, newVal)

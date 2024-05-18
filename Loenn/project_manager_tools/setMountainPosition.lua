@@ -2,6 +2,10 @@ local mods = require("mods")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
 local projectLoader =  mods.requireFromPlugin("libraries.projectLoader")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
+local utils = require("utils")
+local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
+local history = require("history")
+local logging = require("logging")
 
 local detailScript = {
     name = "setMountainPos",
@@ -99,7 +103,30 @@ function initScript.run(args)
                 ["Rotate"] = appliedConf.rotate
             }
         }
-        metadataHandler.update(newData)
+        local dataBefore = utils.deepcopy(metadataHandler.loadedData)
+        local forward = function ()
+            local success,message=metadataHandler.update(newData)
+            if not success then
+                message.loadedData = dataBefore
+            end
+            return success, "Failed to write metadata"
+        end
+        local backward = function ()
+            metadataHandler.loadedData = dataBefore
+            local success,message = metadataHandler.write()
+            if not success then
+                metadataHandler.update(newData)
+            end
+            return success, "Failed to write metadata"
+        end
+        local success,message = forward()
+        if not success then
+            metadataHandler.loadedData = dataBefore
+            logging.warning(message)
+            return
+        end
+        local snap = fallibleSnapshot.create("Set Position",{success=true},backward,forward)
+        history.addSnapshot(snap)
     else
         initScript.nextScript = detailScript
     end
@@ -135,6 +162,7 @@ end
 
 function detailScript.run(args)
     projectLoader.assertStateValid(pUtils.getProjectDetails())
+    local dataBefore = utils.deepcopy(metadataHandler.loadedData)
     local newData = {
         ["Mountain"]= {
             ["Idle"] = {
@@ -155,6 +183,28 @@ function detailScript.run(args)
             ["Rotate"] =args.rotate
         }
     }
-    metadataHandler.update(newData)
+    local success, reason=metadataHandler.update(newData)
+    if not success then
+        metadataHandler.loadedData = dataBefore
+        logging.warning("Failed to write metadata")
+        return
+    end
+    local dataAfter = utils.deepcopy(metadataHandler.loadedData)
+    local forward = function ()
+        metadataHandler.loadedData = dataAfter
+        local success, reason = metadataHandler.write()
+        if not success then
+            metadataHandler.loadedData = dataBefore
+        end
+        return success,"Failed to write metadata"
+    end
+    local backward = function ()
+        metadataHandler.loadedData = dataBefore
+        local success, reason = metadataHandler.write()
+        if not success then metadataHandler.loadedData = dataAfter end
+        return success,"Failed to write metadat"
+    end
+    local snap = fallibleSnapshot.create("Set Position",{success=true},backward,forward)
+    history.addSnapshot(snap)
 end
 return initScript

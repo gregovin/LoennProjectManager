@@ -2,6 +2,9 @@ local mods = require("mods")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
+local utils = require("utils")
+local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
+local history = require("history")
 local logging = require("logging")
 
 local function musicValidator(s)
@@ -93,6 +96,7 @@ end
 function script.run(args)
     local projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
+    local dataBefore = utils.deepcopy(metadataHandler.loadedData)
     metadataHandler.setNestedIfNotDefault({"Mountain","BackgroundMusic"},args.backgroundMusic)
     metadataHandler.setNestedIfNotDefault({"Mountain","BackgroundAmbience"},args.backgroundAmbience)
     local repackedMusicParams = {}
@@ -111,6 +115,25 @@ function script.run(args)
         end
     end
     metadataHandler.setNestedIfNotDefault({"Mountain","BackgroundAmbienceParams"},repackedAmbienceParams)
-    local success, reason = metadataHandler.write()
+    local dataAfter = utils.deepcopy(metadataHandler.loadedData)
+    local forward = function ()
+        metadataHandler.loadedData = dataAfter
+        local success, reason = metadataHandler.write()
+        if not success then metadataHandler.loadedData = dataBefore end
+        return success, "Failed to write metadata"
+    end
+    local backward = function ()
+        metadataHandler.loadedData = dataBefore
+        local success, reason = metadataHandler.write()
+        if not success then metadataHandler.loadedData = dataAfter end
+        return success, "Failed to write metadata"
+    end
+    local success, message = forward()
+    if not success then 
+        logging.warning(message)
+        return
+    end
+    local snap = fallibleSnapshot.create("Set Music",{success=true},backward,forward)
+    history.addSnapshot(snap)
 end
 return script
