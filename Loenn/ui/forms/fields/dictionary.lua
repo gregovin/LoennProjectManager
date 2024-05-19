@@ -57,7 +57,7 @@ end
 function dictionaryField._MT.__index:keyValid(idx)
     return self.keyValidator(self:getKey(idx),self:getKeyText(idx))
 end
-function dictionaryField._MT.__index:xg(idx)
+function dictionaryField._MT.__index:keyWarning(idx)
     return self.keyWarning(self:getKey(idx),self:getKeyText(idx))
 end
 function dictionaryField._MT.__index:valueValid(idx)
