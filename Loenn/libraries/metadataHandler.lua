@@ -9,7 +9,7 @@ local logging = require("logging")
 local modsDir = fileSystem.joinpath(fileLocations.getCelesteDir(), "Mods")
 
 local metadataHandler = {}
-
+--Vanilla mountain positions
 metadataHandler.vanillaMountainConfig = {}
 metadataHandler.vanillaMountainConfig["Prologue"] = {
     idle = {
@@ -210,34 +210,42 @@ local function tryReadData(path)
     local content = utils.readAll(path)
     return yaml.read(utils.stripByteOrderMark(content))
 end
----Loads the metadata and cache it
+---Loads the metadata and caches it
 ---@param projectDetails table the project details of the project to get the metadata for
 function metadataHandler.readMetadata(projectDetails)
-    --read meta.yaml
+    --get meta.yaml location
     local fLocal = fileSystem.joinpath(modsDir, projectDetails.name, "Maps", projectDetails.username,
         projectDetails.campaign)
     local location = fileSystem.joinpath(fLocal, projectDetails.map .. ".meta.yaml")
     if fileSystem.isFile(location) then
+        --if there is already a .meta.yaml, then read its data
         logging.info("[Loenn Project Manager] Reading meta.yaml at " .. location)
         local success, data = pcall(tryReadData, location)
         if not success then
+            --if we fail, log and notify
             logging.warning("[Loenn Project Manager] Failed to read " .. location ..
                 " due to the following error:\n" .. data)
             notifications.notify("Failed to read " .. location)
             return
         end
         if type(data) == "table" then
+            --if we succeded and got the right data, set the internal values
             metadataHandler.loadedFile = location
             metadataHandler.loadedData = data
         else
+            --otherwise log and notify
             logging.warning("Bad return from yaml read, recieved a value of type " .. type(data))
+            notifications.notify("Failed to read " .. location)
         end
     else
         if fileSystem.isDirectory(fLocal) then
+            --if the folder exists then we can write to the location with no problems
             metadataHandler.loadedFile = location
             metadataHandler.loadedData = {}
+        else
+            --otherwise there cannot be a map this metadata is for so we have a problem
+            error("Bad project details! Map directory " .. fLocal .. " does not exist")
         end
-        metadataHandler.loadedData = {}
     end
 end
 
@@ -246,11 +254,11 @@ function metadataHandler.getKey(k)
 end
 
 ---Get a metadata value by its keys
----@param keys [string] the list of keys
----@return any value the value with the specified keys(or nil)
+---@param keys string[] the list of keys
+---@return any value
 function metadataHandler.getNestedValue(keys)
     local v = metadataHandler.loadedData
-    for i, key in ipairs(keys) do
+    for _, key in ipairs(keys) do
         v = v[key]
         if not v then
             return nil
@@ -275,6 +283,7 @@ local function recUpdate(tabl, newData)
         end
     end
 end
+-- Default metadata options
 metadataHandler.defaults = {
     ["Mountain"] = {
         ["ShowSnow"] = true,
@@ -302,7 +311,7 @@ metadataHandler.defaults = {
     }
 }
 ---Returns a list in "[a,b,...]"" form
----@param v [any] the list to transform
+---@param v any[] the list to transform
 ---@return string
 local function briefList(v)
     return "[" .. pUtils.listToString(v) .. "]"
@@ -328,7 +337,7 @@ metadataHandler.transformers = {
 ---Applies transformers to the data as needed
 ---@param data table the table to transform
 ---@param transformers table the table of transformers to apply
----@return table
+---@return table transformed
 local function sanatizeData(data, transformers)
     local out = {}
     for k, v in pairs(data) do
@@ -358,7 +367,7 @@ end
 ---Recursively set the value at the point with the given keys
 ---@param v table the table to update
 ---@param idx integer the index which determines the key to update
----@param keys [any] the list of keys that determines which item to update
+---@param keys any[] the list of keys that determines which item to update
 ---@param new any the value to set
 local function recSetNested(v, idx, keys, new)
     if idx == #keys then
@@ -370,15 +379,15 @@ local function recSetNested(v, idx, keys, new)
 end
 ---Set the value at the point in the table with the given keys
 ---@param v table the table to update
----@param keys [any] the list of keys to use
+---@param keys any[] the list of keys to use
 ---@param new any the value to set
 function metadataHandler.setNested(v, keys, new)
     recSetNested(v, 1, keys, new)
 end
 
 ---Get the default value of the metatada at a certain set of keys
----@param keys [any] the list of keys to access
----@return any value the requested default value
+---@param keys any[] the list of keys to access
+---@return any value
 function metadataHandler.getDefault(keys)
     local v = metadataHandler.defaults
     for i, key in ipairs(keys) do
@@ -393,7 +402,7 @@ end
 ---Test if two tables are equal by value
 ---@param table1 table
 ---@param table2 table
----@return boolean
+---@return boolean areEqual
 local function equal(table1, table2)
     if type(table1) ~= type(table2) then return false end
     if type(table1) == "table" then
@@ -415,7 +424,7 @@ local function equal(table1, table2)
     end
 end
 ---Set the metadata value if the new value is not the defualt, otherwise set the
----@param keys [any] the list of keys to set at
+---@param keys any[] the list of keys to set at
 ---@param newVal any the value to set
 function metadataHandler.setNestedIfNotDefault(keys, newVal)
     if equal(newVal, metadataHandler.getDefault(keys)) then
@@ -426,7 +435,7 @@ function metadataHandler.setNestedIfNotDefault(keys, newVal)
 end
 
 ---Get the metadata value or the default value if it isn't defined
----@param keys [any] the keys to use
+---@param keys any[] the keys to use
 ---@return any value
 function metadataHandler.getNestedValueOrDefault(keys)
     return metadataHandler.getNestedValue(keys) or metadataHandler.getDefault(keys)

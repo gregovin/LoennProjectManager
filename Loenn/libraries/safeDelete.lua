@@ -4,13 +4,13 @@ local logging = require("logging")
 local lfs = require("lib.lfs_ffi")
 local settings = require("mods").requireFromPlugin("libraries.settings")
 
-
 local timestampFormat = "%Y-%m-%d %H-%M-%S"
 local timestampPattern = ".*(%d%d%d%d)-(%d%d)-(%d%d) (%d%d)-(%d%d)-(%d%d)"
 local safeDelete = {}
+--get the storage folder
 safeDelete.folder = fileSystem.joinpath(fileLocations.getStorageDir(), "LPMTrash")
 ---get the names of the deleted items
----@return string[] names the list of filenames that have been temporarily deleted
+---@return string[] names
 function safeDelete.getImageNames()
     local filenames = {}
     for filename in lfs.dir(safeDelete.folder) do
@@ -30,14 +30,19 @@ end
 --This function should run on tool load(ie startup)
 --It cleans up old backups
 function safeDelete.startup()
+    --if the directory doesn't exist, make it
     if not fileSystem.isDirectory(safeDelete.folder) then
         fileSystem.mkpath(safeDelete.folder)
     end
+    --determine how many files there are and what their names are
     local imageFilenames = safeDelete.getImageNames()
     local filecount = #imageFilenames
+    --get the maximum number of backups allowed
     local maximumBackups = settings.get("DesiredLargeBackups", 20)
     if filecount > maximumBackups then
-        logging.info("[Loenn Project Manager] pruning temp files")
+        --if we need to prune files, log that we are doing so
+        logging.info("[Loenn Project Manager] pruning backup files")
+        --compile a list of filenames and times, and sort by time
         local fileInformations = {}
         for i, filename in ipairs(imageFilenames) do
             fileInformations[i] = {
@@ -49,6 +54,7 @@ function safeDelete.startup()
             return a.created > b.created
         end)
         while filecount > maximumBackups do
+            --get the oldest file, and delete it
             local delName = fileInformations[filecount].filename
             if not delName then
                 break
