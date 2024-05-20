@@ -8,9 +8,9 @@ local modsDir = fileSystem.joinpath(fileLocations.getCelesteDir(), "Mods")
 
 
 local pUtils = {}
----A helper function which lists all entries in a dir excluding the backreferences
+---Lists all entries in a dir excluding the backreferences
 ---@param path string the absolute path to the directory to list
----@return string[] list the list of filenames in that directory
+---@return string[] list
 function pUtils.list_dir(path)
     local out = {}
     for file in fileSystem.listDir(path) do
@@ -21,17 +21,17 @@ function pUtils.list_dir(path)
     return out
 end
 
----A helper function which gets an location inside this mod as an absolute path
----@param alternate string the relative path from the root of this mod to the file
----@return string path the absolute path to the desired item
+---Reads a file fron inside this mod as an absolute path
+---@param alternate string the relative path from the Loenn folder of this mod to the file
+---@return string contents
 function pUtils.getInnerXml(alternate)
     return mods.readFromPlugin(alternate)
 end
 
 ---A helper function to get an xml string from a desired xml or its alternate if not present
----@param location string the relative path to the xml location from the mod root
----@param projectDetails table the details for this project(as returned by pUtils.getProjectDetails())
----@param alternate string the relative path to the alternate xml location form this mods root
+---@param location string the relative path to the xml location from the loaded mod root
+---@param projectDetails ProjectDetails the details for this project
+---@param alternate string the relative path to the alternate xml location form this mod's Loenn folder
 ---@return string contents the full file contents for the file read
 function pUtils.getXmlString(location, projectDetails, alternate)
     if location then
@@ -49,8 +49,8 @@ end
 
 ---Renders a list to a string for displaying to the user
 ---@param ls any[] a list (ie ipairs iterable object) containing objects that can be representated as strings
----@param sep string? a string seperator for the printing
----@return string out the string to show to the end user
+---@param sep string? a string seperator for the printing. Defaults to ","
+---@return string
 function pUtils.listToString(ls, sep)
     local innerSep = ''
     local res = ''
@@ -67,7 +67,7 @@ end
 
 ---Converts a set(table from objects to booleans) into the list of objects which it contains
 ---@param set {[any]:boolean} the set to convert
----@return any[] list the objects the set contains
+---@return any[] list
 function pUtils.setAsList(set)
     local out = {}
     for k, v in pairs(set) do
@@ -78,8 +78,14 @@ function pUtils.setAsList(set)
     return out
 end
 
+---@class ProjectDetails A collection of project details
+---@field name string the name of the mod
+---@field username string the username associated with the project
+---@field campaign string the campaign associated with the project
+---@field map string the map associated with the project
+
 ---Get the project details for the currently loaded project
----@return {name:string,username:string,campaign:string,map:string} details the project details
+---@return ProjectDetails details the project details
 function pUtils.getProjectDetails()
     return {
         name = settings.get("name", nil, "recentProjectInfo"),
@@ -127,7 +133,10 @@ function pUtils.normalize(s)
     return string.lower(string.match(s, "^%s*(.-)%s*$"))
 end
 
----determines if the file at path is a png
+--Pngs start with this string of bytes
+local pngStartConstant = "\137\80\78\71\13\10\26\10"
+
+---determines if the file at path is a real png
 ---@param path string
 ---@return boolean
 ---@return string? msg relevant error message
@@ -140,8 +149,8 @@ function pUtils.isPng(path)
     end
     local header = test:read(8)
     assert(test:close())
-    return header == "\137\80\78\71\13\10\26\10", string.format("%s is a fake png, failed to import", path),
-        "Tileset is a fake png. Ask discord for assistance"
+    return header == pngStartConstant, string.format("%s is a fake png, failed to import", path),
+        "Tileset is a fake png. Ask the discord for assistance"
 end
 
 return pUtils

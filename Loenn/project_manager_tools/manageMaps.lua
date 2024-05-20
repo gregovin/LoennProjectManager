@@ -46,9 +46,9 @@ function script.run(args)
         local target= getMapLocation(projectDetails,args.mapName)
         logging.info("creating map at "..target)
         if $(projectDetails.maps):contains(args.mapName) then
-            projectLoader.loadMap(target,args.mapName)
+            projectLoader.loadMap(target)
         else
-            projectLoader.newMap(target,args.mapName,projectDetails)
+            projectLoader.newMap(target,projectDetails)
         end
         projectLoader.clearMetadataCache()
     elseif not projectDetails.projectName then

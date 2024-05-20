@@ -38,9 +38,9 @@ function script.run(args)
     if projectDetails.projectName and projectDetails.username then
         local target= fileSystem.joinpath(modsDir,projectDetails.projectName,"Maps",projectDetails.username,args.campaignName)
         if $(projectDetails.campaigns):contains(args.campaignName) then
-            projectLoader.loadCampaign(target,args.campaignName)
+            projectLoader.loadCampaign(target)
         else
-            projectLoader.newCampaign(target,args.campaignName,projectDetails)
+            projectLoader.newCampaign(targete,projectDetails)
         end
         projectLoader.clearMetadataCache()
     elseif projectDetails.projectName then

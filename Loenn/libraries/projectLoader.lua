@@ -17,12 +17,12 @@ local modsDir = fileSystem.joinpath(fileLocations.getCelesteDir(), "Mods")
 local loaders = {}
 ---A helper function to load a map into project manager
 ---@param mapLocation string the path to the map to load
----@param mapName string the name to load the map with(may be refactored out with fileSystem.stripExtension later)
-function loaders.loadMap(mapLocation, mapName)
+function loaders.loadMap(mapLocation)
     local campaign = settings.get("SelectedCampaign", nil, "recentProjectInfo")
     local pfground = fileSystem.joinpath("Graphics", campaign, "ForegroundTiles.xml")
     local pbground = fileSystem.joinpath("Graphics", campaign, "BackgroundTiles.xml")
     local tplevel = fileSystem.joinpath(modsDir, settings.get("name", nil, "recentProjectInfo"))
+    local mapName = fileSystem.stripExtension(fileSystem.filename(mapLocation))
     if fileSystem.isFile(fileSystem.joinpath(tplevel, pfground)) or fileSystem.isFile(fileSystem.joinpath(tplevel, pbground)) then
         local s = sideStruct.decode(mapcoder.decodeFile(mapLocation))
         s.meta = s.meta or {}
@@ -50,11 +50,11 @@ local emptySide = {
     },
     meta = {}
 }
----A helper method which makes a new map
+---Create a new map
 ---@param mapLocation string the path the map should be created at
----@param mapName string the name for the map(as with loadMap may be obsleted with filesystem stuff)
 ---@param projectDetails table the project details for the currently loaded project
-function loaders.newMap(mapLocation, mapName, projectDetails)
+function loaders.newMap(mapLocation, projectDetails)
+    local mapName = fileSystem.stripExtension(fileSystem.filename(mapLocation))
     table.insert(projectDetails.maps, mapName)
     local topdir = fileSystem.joinpath(modsDir, projectDetails.name)
     local xmlpath = fileSystem.joinpath("Graphics", projectDetails.campaign)
@@ -80,17 +80,17 @@ end
 
 ---A helper function to load a campaign into loenn pm
 ---@param campaignLocation string the path to the campaign
----@param campaignName string the name of the campaign to load(as with map name this is partially redundant)
-function loaders.loadCampaign(campaignLocation, campaignName)
+function loaders.loadCampaign(campaignLocation)
     --get the map names from the filenames within the campaign location
     local maps = ($(p_utils.list_dir(campaignLocation)):filter(file->fileSystem.fileExtension(file)=="bin"):map(file->fileSystem.stripExtension(file)))()
+    local campaignName = fileSystem.filename(campaignLocation)
     --update the state
     settings.set("SelectedCampaign", campaignName, "recentProjectInfo")
     settings.set("maps", maps, "recentProjectInfo")
     --if there is exactly one map, load it, otherwise request user intervention
     if #maps == 1 then
         local mapName = maps[1]
-        loaders.loadMap(fileSystem.joinpath(campaignLocation, mapName .. ".bin"), mapName)
+        loaders.loadMap(fileSystem.joinpath(campaignLocation, mapName .. ".bin"))
     elseif #maps > 1 then
         notifications.notify("Campaign loaded. Select a map to continue", 10)
     else
@@ -98,13 +98,14 @@ function loaders.loadCampaign(campaignLocation, campaignName)
     end
 end
 
----A helper function to create a new campaign
+---Creates a new campaign
 ---@param campaignLocation string the path to the campaign
----@param campaignName string the name of the campaign(as with load camnpaign this is redundant)
 ---@param projectDetails table the project details for the currently loaded project
-function loaders.newCampaign(campaignLocation, campaignName, projectDetails)
-    local success, message = fileSystem.mkpath(campaignLocation)
+function loaders.newCampaign(campaignLocation, projectDetails)
+    local success, message = fileSystem.mkpath(campaignLocation) --make the path
+    local campaignName = fileSystem.filename(campaignLocation)
     if success then
+        --if it worked then add the campaign details to the relevant places
         settings.set("SelectedCampaign", campaignName, "recentProjectInfo")
         table.insert(projectDetails.campaigns, campaignName)
         settings.set("campaigns", projectDetails.campaigns, "recentProjectInfo")
@@ -112,25 +113,22 @@ function loaders.newCampaign(campaignLocation, campaignName, projectDetails)
         settings.set("recentmap", nil, "recentProjectInfo")
         notifications.notify(string.format("Switched to Campaign %s, create a map to continue", campaignName), 10)
     else
+        --otherwise log and notify
         notifications.notify("Could not create campaign due to filesystem error", 10)
         logging.warning(string.format("Failed to create campaign %s due to the following error:\n%s", campaignName,
             message))
     end
 end
 
----A helper function which clears loenn PM's metadata cache. Should be called whenever a new map is loaded
+---Clears loenn PM's metadata cache. Should be called whenever a new map is loaded
 function loaders.clearMetadataCache()
     tilesetHandler.clearTilesetCache()
     metadataHandler.clearMetadata()
     loaders.cacheValid = false
 end
 
-local function passIfFile(path)
-    if fileSystem.isFile(path) then return path end
-    return nil
-end
----A helper function which errors if the state is invalid
----@param projectDetails table the project details for the currently loaded project(as generated by projectUtils.getProjectDetails())
+---Errors if the state is invalid, otherwise does nothing
+---@param projectDetails ProjectDetails the project details for the currently loaded project
 function loaders.assertStateValid(projectDetails)
     local mapLocation = fileSystem.joinpath(modsDir, projectDetails.name, "Maps", projectDetails.username,
         projectDetails.campaign, projectDetails.map .. ".bin")
@@ -139,8 +137,8 @@ function loaders.assertStateValid(projectDetails)
     end
 end
 
----A helper function to load metadata if it isn't cached. This should be called if metadata is needed but loaders.cacheValid is false
----@param projectDetails table
+---Load metadata for the current project. This should be called if metadata is needed but loaders.cacheValid is false
+---@param projectDetails ProjectDetails
 function loaders.loadMetadataDetails(projectDetails)
     logging.info("loading metadata")
     -- read the map metadata
@@ -158,7 +156,7 @@ function loaders.loadMetadataDetails(projectDetails)
     settings.set("foregroundTilesXml", foregroundTilesXml, "recentProjectInfo")
     settings.set("backgroundTilesXml", backgroundTilesXml, "recentProjectInfo")
     settings.set("animatedTilesXml", animatedTilesXml, "recentProjectInfo")
-
+    --read meta.yaml
     metadataHandler.readMetadata(projectDetails)
     loaders.cacheValid = true
 end
