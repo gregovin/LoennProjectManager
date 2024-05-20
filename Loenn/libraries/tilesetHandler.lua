@@ -520,7 +520,7 @@ end
 ---@return boolean
 function handler.isTileset(id, foreground)
     local dict = foreground and handler.revDict.foreground or handler.revDict.background
-    if dict[id] then return true end
+    return not not dict[id]
 end
 
 ---Update other maps in this campaign to use the correct xmls
