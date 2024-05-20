@@ -3,6 +3,7 @@ local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
 local utils = require("utils")
+local songs = require("consts.songs")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 local history = require("history")
 local logging = require("logging")
@@ -31,11 +32,15 @@ local script = {
     fieldInformation={
         backgroundMusic={
             fieldType="string",
-            validator = musicValidator
+            validator = musicValidator,
+            options = songs,
+            editable = true,
         },
         backgroundAmbience={
             fieldType="string",
-            validator = musicValidator
+            validator = musicValidator,
+            options = songs,
+            editable = true,
         },
         backgroundMusicParams={
             fieldType="loennProjectManager.dictionary"
