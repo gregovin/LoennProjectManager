@@ -6,13 +6,13 @@ local settings = mods.requireFromPlugin("libraries.settings")
 local notifications = require("ui.notification")
 local history = require("history")
 local logging = require("logging")
-local projectLoader =  mods.requireFromPlugin("libraries.projectLoader")
+local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local utils = require("utils")
 local tilesetHandler = mods.requireFromPlugin("libraries.tilesetHandler")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local celesteRenderer = require("celeste_render")
-local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
+local modsDir = fileSystem.joinpath(fileLocations.getCelesteDir(), "Mods")
 local celesteEnums = require("consts.celeste_enums")
 
 local script = {
@@ -23,51 +23,53 @@ local script = {
     verb = "import",
     parameters = {
         path = "",
-        name= "",
+        name = "",
         sound = 0,
         ignores = {},
         template = "",
         customMask = "",
-        }
+    }
     ,
     tooltips = {
-        path="The path to the remote tileset in the other mod. If that mod has an example xml, coppy this from the \"path\" attribute",
-        name="The display name for your tileset",
+        path =
+        "The path to the remote tileset in the other mod. If that mod has an example xml, coppy this from the \"path\" attribute",
+        name = "The display name for your tileset",
         sound = "The sound to play when this tile is stepped on",
         ignores = "which tilesets this tile should ignore",
-        template="The template you are using. Edit to create a custom template",
-        customMask="The mask to apply for this tileset or template. Overides the selected template\nIf you are instatiating a template, or the mod has an example xml, copy the bit that goes between the <tileset> tags here", 
+        template = "The template you are using. Edit to create a custom template",
+        customMask =
+        "The mask to apply for this tileset or template. Overides the selected template\nIf you are instatiating a template, or the mod has an example xml, copy the bit that goes between the <tileset> tags here",
     },
     fieldInformation = {
-        path={
+        path = {
             fieldType = "string",
             validator = function(v)
-                return string.find(v,"/")
+                return string.find(v, "/")
             end
         },
         name = {
-            fieldType="loennProjectManager.xmlAttribute"
+            fieldType = "loennProjectManager.xmlAttribute"
         },
         sound = {
-            fieldType="integer",
+            fieldType = "integer",
             options = celesteEnums.tileset_sound_ids
         },
-        ignores={
-            fieldType="loennProjectManager.multiselect",
+        ignores = {
+            fieldType = "loennProjectManager.multiselect",
             multiselectName = "ignores",
             options = {
-                {"all","*"}
+                { "all", "*" }
             }
         },
-        template={
-            fieldType="loennProjectManager.xmlAttribute",
-            options = {{"",""}},
+        template = {
+            fieldType = "loennProjectManager.xmlAttribute",
+            options = { { "", "" } },
             editable = true,
         },
-        customMask={fieldType="string"}
+        customMask = { fieldType = "string" }
     },
-    fieldOrder={
-        "path","name","sound","template","ignores","customMask"
+    fieldOrder = {
+        "path", "name", "sound", "template", "ignores", "customMask"
     }
 }
 
@@ -79,64 +81,72 @@ function script.prerun()
         if not projectLoader.cacheValid then
             projectLoader.loadMetadataDetails(projectDetails)
         end
-        script.fieldInformation.template.options=tilesetHandler.sortedTilesetOpts(tilesetHandler.getTemplates(true))
+        script.fieldInformation.template.options = tilesetHandler.sortedTilesetOpts(tilesetHandler.getTemplates(true))
         local ignoreOptions = tilesetHandler.sortedTilesetOpts(tilesetHandler.getTilesets(true))
-        table.insert(ignoreOptions,{"All","*"})
-        script.fieldInformation.ignores.options=ignoreOptions
+        table.insert(ignoreOptions, { "All", "*" })
+        script.fieldInformation.ignores.options = ignoreOptions
     elseif not projectDetails.name then
-        error("Cannot find tilesets because no project is selected!",2)
+        error("Cannot find tilesets because no project is selected!", 2)
     elseif not projectDetails.username then
-        error("Cannot find tilesets because no username is selected. This should not happen",2)
+        error("Cannot find tilesets because no username is selected. This should not happen", 2)
     elseif not projectDetails.campaign then
-        error("Cannot find tilesets because no campaign is selected!",2)
+        error("Cannot find tilesets because no campaign is selected!", 2)
     else
-        error("Cannot find tilesets because no map is selected!",2)
+        error("Cannot find tilesets because no map is selected!", 2)
     end
 end
+
 function script.run(args)
     local projectDetails = pUtils.getProjectDetails()
     --error if the state doesn't match
     projectLoader.assertStateValid(projectDetails)
     --determine where the foregroundTiles.xml should be
-    local target = tilesetHandler.prepareXmlLocation(true,projectDetails)
-    
+    local target = tilesetHandler.prepareXmlLocation(true, projectDetails)
+
     local hadFgTiles = state.side.meta and state.side.meta.ForegroundTiles
     local copyMask = ""
     local templateInfo = ""
-    if tilesetHandler.isTileset(args.template,true) then
+    if tilesetHandler.isTileset(args.template, true) then
         copyMask = args.template
     else
         templateInfo = args.template
     end
-    local tilesetName =args.name
+    local tilesetName = args.name
     if not tilesetName then
-        tilesetName = utils.filename(args.path,"/") or args.path
+        tilesetName = utils.filename(args.path, "/") or args.path
         tilesetName = utils.humanizeVariableName(tilesetName)
     end
     local addTileset = function()
-        local success, logMessage,displayMessage = tilesetHandler.addTileset(args.path,args.name,copyMask,args.sound,args.ignores,templateInfo,args.customMask,true,target)
-        if not success then logging.warning("failed to write to %s due to the following error:\n%s",target,logMessage) end
+        local success, logMessage, displayMessage = tilesetHandler.addTileset(args.path, args.name, copyMask, args.sound,
+            args.ignores, templateInfo, args.customMask, true, target)
+        if not success then
+            logging.warning(string.format("failed to write to %s due to the following error:\n%s", target,
+                logMessage))
+        end
         celesteRenderer.loadCustomTilesetAutotiler(state)
-        return success,string.format("Failed to add tileset: %s",displayMessage)
+        return success, string.format("Failed to add tileset: %s", displayMessage)
     end
     local remTileset = function()
-        local success, logMessage, humMessage = tilesetHandler.removeTileset(tilesetName,true,target)
-        if not success then logging.warning("failed to write to %s due to the following error:\n%s",target,logMessage) end
+        local success, logMessage, humMessage = tilesetHandler.removeTileset(tilesetName, true, target)
+        if not success then
+            logging.warning(string.format("failed to write to %s due to the following error:\n%s", target,
+                logMessage))
+        end
         celesteRenderer.loadCustomTilesetAutotiler(state)
-        return success,string.format("Failed to remove tileset: {}",humMessage)
+        return success, string.format("Failed to remove tileset: {}", humMessage)
     end
-    local snap = fallibleSnapshot.create("Add Tileset",{success=true},remTileset,addTileset)
-    local success,message = addTileset()
-    if not success then 
+    local snap = fallibleSnapshot.create("Add Tileset", { success = true }, remTileset, addTileset)
+    local success, message = addTileset()
+    if not success then
         notifications.notify(message)
         return
     end
     if (not hadFgTiles) and success then
-        local diffp=pUtils.pathDiff(fileSystem.joinpath(modsDir,projectDetails.name),target)
-        tilesetHandler.updateCampaignMetadata(projectDetails,state,true,diffp)
+        local diffp = pUtils.pathDiff(fileSystem.joinpath(modsDir, projectDetails.name), target)
+        tilesetHandler.updateCampaignMetadata(projectDetails, state, true, diffp)
         state.side.meta = state.side.meta or {}
-        state.side.meta.ForegroundTiles=diffp
-        settings.set("foregroundTilesXml",diffp,"recentProjectInfo")
+        state.side.meta.ForegroundTiles = diffp
+        settings.set("foregroundTilesXml", diffp, "recentProjectInfo")
         if not state.side.meta.BackgroundTiles then
             notifications.notify("Save and restart loenn to load your tileset")
         end
@@ -144,4 +154,5 @@ function script.run(args)
     celesteRenderer.loadCustomTilesetAutotiler(state)
     history.addSnapshot(snap)
 end
+
 return script
