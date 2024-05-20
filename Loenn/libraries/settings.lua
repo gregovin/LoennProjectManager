@@ -55,24 +55,24 @@ function extSettings.get(settingName, default, namespace)
 
     return value
 end
-function extSettings.set(settingName,value,namespace)
+
+function extSettings.set(settingName, value, namespace)
     local settings = mods.getModSettings()
     local target = settings
     if namespace then
-        local nm=settings[namespace]
+        local nm = settings[namespace]
         if not nm then
-            settings[namespace] ={}
-            nm=settings[namespace]
+            settings[namespace] = {}
+            nm = settings[namespace]
         end
-        target=nm
+        target = nm
     end
     if settingName then
         target[settingName] = value
     end
     if namespace then
-        settings[namespace] = utils.deepcopy(target) -- I have no clue if this is needed, I guess so for the same reason as in get 
+        settings[namespace] = utils.deepcopy(target) -- I have no clue if this is needed, I guess so for the same reason as in get
     end
 end
-
 
 return extSettings

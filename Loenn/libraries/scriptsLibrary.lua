@@ -10,7 +10,7 @@ function scriptsLibrary.getModPersistence()
     local settings = mods.getModPersistence()
 
     -- setup default values
-    settings.customScripts = settings.customScripts or { }
+    settings.customScripts = settings.customScripts or {}
 
     return settings
 end
