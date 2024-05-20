@@ -21,7 +21,7 @@ local base = {
 ---@param checkText string|nil|(fun(): string?) This string will be used as the text associated with a check box that must be clicked
 ---@param predicate nil|fun(): boolean? If this function exists and returns false then the warning will be skipped
 ---@param callback nil|fun() If this function exists it will be called when the warning is accepted
----@param next table the script to run after the warning
+---@param next table? the script to run after the warning
 ---@return table warningScript
 function warningGenerator.makeWarning(text, tosString, checkText, predicate, callback, next)
     local out = utils.deepcopy(base)

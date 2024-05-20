@@ -4,7 +4,7 @@ local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
 local fileLocations = require("file_locations")
 local fileSystem = require("utils.filesystem")
-local modsDir=fileSystem.joinpath(fileLocations.getCelesteDir(),"Mods")
+local modsDir = fileSystem.joinpath(fileLocations.getCelesteDir(), "Mods")
 local utils = require("utils")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 local history = require("history")
@@ -13,16 +13,18 @@ local logging = require("logging")
 local script = {
     name = "setMountainTextures",
     displayName = "Set Mountain Textures",
-    layer="metadata",
+    layer = "metadata",
     verb = "apply",
     tooltip = "Modify the overworld textures",
     parameters = {
-        textures = {""},
-        models = {""},
+        textures = { "" },
+        models = { "" },
     },
     tooltips = {
-        textures = "Mountain texture files to use. To reset remove all items. Always coppies selected files and deletes present files.",
-        models = "Mountain modes to use. To reset remove all items. Always coppies selected files and deletes present files."
+        textures =
+        "Mountain texture files to use. To reset remove all items. Always coppies selected files and deletes present files.",
+        models =
+        "Mountain modes to use. To reset remove all items. Always coppies selected files and deletes present files."
     },
     fieldInformation = {
         textures = {
@@ -36,20 +38,24 @@ local script = {
             allowEmpty = true
         }
     },
-    fieldOrder = {"textures","models"}
+    fieldOrder = { "textures", "models" }
 }
 local function getMontainLocales(projectDetails)
-    local textureLocale = metadataHandler.getNestedValue({"Mountain","MountainTextureDirectory"})
-    local mountainModelLocale = metadataHandler.getNestedValue({"Mountain","MountainModelDirectory"})
+    local textureLocale = metadataHandler.getNestedValue({ "Mountain", "MountainTextureDirectory" })
+    local mountainModelLocale = metadataHandler.getNestedValue({ "Mountain", "MountainModelDirectory" })
     if textureLocale then
-        textureLocale = fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Mountain",textureLocale)
+        textureLocale = fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases", "Mountain",
+            textureLocale)
     else
-        textureLocale = fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Mountain",projectDetails.username,projectDetails.campaign)
+        textureLocale = fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases", "Mountain",
+            projectDetails.username, projectDetails.campaign)
     end
     if mountainModelLocale then
-        mountainModelLocale = fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases",mountainModelLocale)
+        mountainModelLocale = fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases",
+            mountainModelLocale)
     else
-        mountainModelLocale = fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Mountain",projectDetails.username,projectDetails.campaign)
+        mountainModelLocale = fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases", "Mountain",
+            projectDetails.username, projectDetails.campaign)
     end
     script.textureLocale = textureLocale
     script.mountainModelLocale = mountainModelLocale
@@ -65,60 +71,61 @@ function script.prerun()
         local textures = {}
         if fileSystem.isDirectory(script.textureLocale) then
             for v in fileSystem.listDir(script.textureLocale) do
-                local target = fileSystem.joinpath(script.textureLocale,v)
-                if fileSystem.isFile(target) and fileSystem.fileExtension(target)=="png" then
+                local target = fileSystem.joinpath(script.textureLocale, v)
+                if fileSystem.isFile(target) and fileSystem.fileExtension(target) == "png" then
                     table.insert(textures, target)
                 end
             end
         else
-            table.insert(textures,"")
+            table.insert(textures, "")
         end
         local models = {}
         if fileSystem.isDirectory(script.mountainModelLocale) then
             for v in fileSystem.listDir(script.mountainModelLocale) do
-                local target  = fileSystem.joinpath(script.mountainModelLocale,v)
-                if fileSystem.isFile(target) and fileSystem.fileExtension(target)=="obj" then
+                local target = fileSystem.joinpath(script.mountainModelLocale, v)
+                if fileSystem.isFile(target) and fileSystem.fileExtension(target) == "obj" then
                     table.insert(models, target)
                 end
             end
         else
-            table.insert(models,"")
+            table.insert(models, "")
         end
         script.parameters.models = models
         script.parameters.textures = textures
     elseif not projectDetails.name then
-        error("Cannot find tilesets because no project is selected!",2)
+        error("Cannot find tilesets because no project is selected!", 2)
     elseif not projectDetails.username then
-        error("Cannot find tilesets because no username is selected. This should not happen",2)
+        error("Cannot find tilesets because no username is selected. This should not happen", 2)
     elseif not projectDetails.campaign then
-        error("Cannot find tilesets because no campaign is selected!",2)
+        error("Cannot find tilesets because no campaign is selected!", 2)
     else
-        error("Cannot find tilesets because no map is selected!",2)
+        error("Cannot find tilesets because no map is selected!", 2)
     end
 end
+
 function script.run(args)
     local projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
     local textures = {}
-    for _,v in ipairs(args.textures) do
-        if fileSystem.isFile(v) and fileSystem.fileExtension(v)=="png" then
+    for _, v in ipairs(args.textures) do
+        if fileSystem.isFile(v) and fileSystem.fileExtension(v) == "png" then
             table.insert(textures, v)
         end
     end
     local models = {}
-    for _,v in ipairs(args.models) do
-        if fileSystem.isFile(v) and fileSystem.fileExtension(v)=="obj" then
-            table.insert(models,v)
+    for _, v in ipairs(args.models) do
+        if fileSystem.isFile(v) and fileSystem.fileExtension(v) == "obj" then
+            table.insert(models, v)
         end
     end
     if fileSystem.isDirectory(script.textureLocale) then
         for v in fileSystem.listDir(script.textureLocale) do
-            local target = fileSystem.joinpath(script.textureLocale,v)
+            local target = fileSystem.joinpath(script.textureLocale, v)
             if fileSystem.isFile(target) and fileSystem.fileExtension(target) == "png" then
                 local keep = false
-                for _,f in ipairs(textures) do
-                    if f==target then
-                        keep =true
+                for _, f in ipairs(textures) do
+                    if f == target then
+                        keep = true
                     end
                 end
                 if not keep then
@@ -128,27 +135,29 @@ function script.run(args)
         end
     end
     local dataBefore = utils.deepcopy(metadataHandler.loadedData)
-    if #textures>0 then
+    if #textures > 0 then
         if not fileSystem.isDirectory(script.textureLocale) then
             fileSystem.mkpath(script.textureLocale)
         end
-        local path = pUtils.pathDiff(fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Mountain"),script.textureLocale)
-        metadataHandler.setNested(metadataHandler.loadedData,{"Mountain","MountainTextureDirectory"},string.gsub(path,"\\","/"))
-        for _,v in ipairs(textures) do
-            local target = fileSystem.joinpath(script.textureLocale,fileSystem.filename(v))
-            fileSystem.copy(v,target)
+        local path = pUtils.pathDiff(fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases", "Mountain"),
+            script.textureLocale)
+        metadataHandler.setNested(metadataHandler.loadedData, { "Mountain", "MountainTextureDirectory" },
+            string.gsub(path, "\\", "/"))
+        for _, v in ipairs(textures) do
+            local target = fileSystem.joinpath(script.textureLocale, fileSystem.filename(v))
+            fileSystem.copy(v, target)
         end
     else
-        metadataHandler.setNested(metadataHandler.loadedData,{"Mountain","MountainTextureDirectory"},nil)
+        metadataHandler.setNested(metadataHandler.loadedData, { "Mountain", "MountainTextureDirectory" }, nil)
     end
     if fileSystem.isDirectory(script.mountainModelLocale) then
         for v in fileSystem.listDir(script.mountainModelLocale) do
-            local target = fileSystem.joinpath(script.mountainModelLocale,v)
+            local target = fileSystem.joinpath(script.mountainModelLocale, v)
             if fileSystem.isFile(target) and fileSystem.fileExtension(target) == "obj" then
                 local keep = false
-                for _,v in ipairs(models) do
-                    if v==target then
-                        keep =true
+                for _, v in ipairs(models) do
+                    if v == target then
+                        keep = true
                     end
                 end
                 if not keep then
@@ -157,38 +166,41 @@ function script.run(args)
             end
         end
     end
-    if #models>0 then
+    if #models > 0 then
         if not fileSystem.isDirectory(script.mountainModelLocale) then
             fileSystem.mkpath(script.mountainModelLocale)
         end
-        local path = pUtils.pathDiff(fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases"),script.mountainModelLocale)
-        metadataHandler.setNested(metadataHandler.loadedData,{"Mountain","MountainModelDirectory"},string.gsub(path,"\\","/"))
-        for _,v in models do
-            local target = fileSystem.joinpath(script.mountainModelLocale,fileSystem.filename(v))
-            fileSystem.copy(v,target)
+        local path = pUtils.pathDiff(fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases"),
+            script.mountainModelLocale)
+        metadataHandler.setNested(metadataHandler.loadedData, { "Mountain", "MountainModelDirectory" },
+            string.gsub(path, "\\", "/"))
+        for _, v in models do
+            local target = fileSystem.joinpath(script.mountainModelLocale, fileSystem.filename(v))
+            fileSystem.copy(v, target)
         end
     else
-        metadataHandler.setNested(metadataHandler.loadedData,{"Mountain","MountainModelDirectory"},nil)
+        metadataHandler.setNested(metadataHandler.loadedData, { "Mountain", "MountainModelDirectory" }, nil)
     end
     local dataAfter = utils.deepcopy(metadataHandler.loadedData)
-    local forward = function ()
+    local forward = function()
         metadataHandler.loadedData = dataAfter
         local success, reason = metadataHandler.write()
         if not success then metadataHandler.loadedData = dataBefore end
         return success, "Failed to write metadata"
     end
-    local backward = function ()
+    local backward = function()
         metadataHandler.loadedData = dataBefore
         local success, reason = metadataHandler.write()
         if not success then metadataHandler.loadedData = dataAfter end
         return success, "Failed to write metadata"
     end
     local success, message = forward()
-    if not success then 
+    if not success then
         logging.warning(message)
         return
     end
-    local snap = fallibleSnapshot.create("Set Music",{success=true},backward,forward)
+    local snap = fallibleSnapshot.create("Set Music", { success = true }, backward, forward)
     history.addSnapshot(snap)
 end
+
 return script

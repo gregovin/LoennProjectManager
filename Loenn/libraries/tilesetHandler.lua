@@ -93,7 +93,7 @@ function handler.getTemplates(foreground)
     end
 end
 ---Reload all tilesets
----@param key string which layer to invalidate(tilesFg or tilesBg)
+---@param key string[] which layers to invalidate(tilesFg or tilesBg)
 ---@param side table the side struct to reload
 function handler.reloadTilesets(key, side)
     celesteRender.loadCustomTilesetAutotiler(side)

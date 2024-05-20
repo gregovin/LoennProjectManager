@@ -2,7 +2,7 @@ local mods = require("mods")
 local utils = require("utils")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
 local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
-local projectLoader =  mods.requireFromPlugin("libraries.projectLoader")
+local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local history = require("history")
 local logging = require("logging")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
@@ -15,33 +15,36 @@ local script = {
     verb = "apply",
     parameters = {
         showSnow = true,
-        fogColors = {"010817","13203E","281A35","010817"},
+        fogColors = { "010817", "13203E", "281A35", "010817" },
         starFogColor = "020915",
-        starStreamColors = {"000000", "9228e2", "30ffff"},
-        starBeltColors1 = {"53f3dd","53c9f3"},
-        starBeltColors2 = {"ab6ffa","fa70ea"}
+        starStreamColors = { "000000", "9228e2", "30ffff" },
+        starBeltColors1 = { "53f3dd", "53c9f3" },
+        starBeltColors2 = { "ab6ffa", "fa70ea" }
     },
     tooltips = {
-        showSnow = "Weather or not to show the snow on the overworld",
-        fogColors = "The colors of the fog on the mountain, for each state. 2 colors will be used by the game: the one for the state your custom mountain uses, and the first one (state 0) on the main menu.",
-        starFogColor = "The color of the fog in space.",
+        showSnow         = "Weather or not to show the snow on the overworld",
+        fogColors        =
+        "The colors of the fog on the mountain, for each state. 2 colors will be used by the game: the one for the state your custom mountain uses, and the first one (state 0) on the main menu.",
+        starFogColor     = "The color of the fog in space.",
         starStreamColors = "The color of the 'streams' visible behind the moon",
-        starBeltColors1 = "The colors of the small stars rotating around the moon. They are dispatched in 2 \"belts\" that are slightly misaligned between each other.",
-        starBeltColors2  = "The colors of the small stars rotating around the moon. They are dispatched in 2 \"belts\" that are slightly misaligned between each other.",
+        starBeltColors1  =
+        "The colors of the small stars rotating around the moon. They are dispatched in 2 \"belts\" that are slightly misaligned between each other.",
+        starBeltColors2  =
+        "The colors of the small stars rotating around the moon. They are dispatched in 2 \"belts\" that are slightly misaligned between each other.",
     },
     fieldInformation = {
-        showSnow = {fieldType = "boolean"},
+        showSnow = { fieldType = "boolean" },
         fogColors = {
             fieldType = "loennProjectManager.fixedColorList",
-            labels = {"night","dawn","day","moon"}
+            labels = { "night", "dawn", "day", "moon" }
         },
         starFogColor = {
-            fieldType = "color",allowXNAColors=false
+            fieldType = "color", allowXNAColors = false
 
         },
         starStreamColors = {
             fieldType = "loennProjectManager.fixedColorList",
-            labels = {"Stream 1", "Stream 2", "Stream 3"}
+            labels = { "Stream 1", "Stream 2", "Stream 3" }
         },
         starBeltColors1 = {
             fieldType = "loennProjectManager.expandableColorList"
@@ -50,7 +53,7 @@ local script = {
             fieldType = "loennProjectManager.expandableColorList"
         }
     },
-    fieldOrder = {"fogColors","showSnow","starFogColor","starStreamColors","starBeltColors1","starBeltColors2"}
+    fieldOrder = { "fogColors", "showSnow", "starFogColor", "starStreamColors", "starBeltColors1", "starBeltColors2" }
 }
 function script.prerun()
     local projectDetails = pUtils.getProjectDetails()
@@ -59,31 +62,31 @@ function script.prerun()
         if not projectLoader.cacheValid then
             projectLoader.loadMetadataDetails(projectDetails)
         end
-        script.parameters.fogColors = metadataHandler.getNestedValueOrDefault({"Mountain","FogColors"})
-        script.parameters.showSnow = metadataHandler.getNestedValueOrDefault({"Mountain","ShowSnow"})
-        script.parameters.starFogColor = metadataHandler.getNestedValueOrDefault({"Mountain","StarFogColor"})
-        script.parameters.starStreamColors = metadataHandler.getNestedValueOrDefault({"Mountain","StarStreamColors"})
-        script.parameters.starBeltColors1 = metadataHandler.getNestedValueOrDefault({"Mountain","StarBeltColors1"})
-        script.parameters.starBeltColors2 = metadataHandler.getNestedValueOrDefault({"Mountain","StarBeltColors2"})
-
+        script.parameters.fogColors = metadataHandler.getNestedValueOrDefault({ "Mountain", "FogColors" })
+        script.parameters.showSnow = metadataHandler.getNestedValueOrDefault({ "Mountain", "ShowSnow" })
+        script.parameters.starFogColor = metadataHandler.getNestedValueOrDefault({ "Mountain", "StarFogColor" })
+        script.parameters.starStreamColors = metadataHandler.getNestedValueOrDefault({ "Mountain", "StarStreamColors" })
+        script.parameters.starBeltColors1 = metadataHandler.getNestedValueOrDefault({ "Mountain", "StarBeltColors1" })
+        script.parameters.starBeltColors2 = metadataHandler.getNestedValueOrDefault({ "Mountain", "StarBeltColors2" })
     elseif not projectDetails.name then
-        error("Cannot find tilesets because no project is selected!",2)
+        error("Cannot find tilesets because no project is selected!", 2)
     elseif not projectDetails.username then
-        error("Cannot find tilesets because no username is selected. This should not happen",2)
+        error("Cannot find tilesets because no username is selected. This should not happen", 2)
     elseif not projectDetails.campaign then
-        error("Cannot find tilesets because no campaign is selected!",2)
+        error("Cannot find tilesets because no campaign is selected!", 2)
     else
-        error("Cannot find tilesets because no map is selected!",2)
+        error("Cannot find tilesets because no map is selected!", 2)
     end
 end
+
 function script.run(args)
     local projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
     local dataBefore = utils.deepcopy(metadataHandler.loadedData)
-    metadataHandler.setNestedIfNotDefault({"Mountain","FogColors"},args.fogColors)
-    metadataHandler.setNestedIfNotDefault({"Mountain","ShowSnow"},args.showSnow)
-    metadataHandler.setNestedIfNotDefault({"Mountain","StarFogColor"},args.starFogColor)
-    metadataHandler.setNestedIfNotDefault({"Mountain","StarStreamColors"},args.starStreamColors)
+    metadataHandler.setNestedIfNotDefault({ "Mountain", "FogColors" }, args.fogColors)
+    metadataHandler.setNestedIfNotDefault({ "Mountain", "ShowSnow" }, args.showSnow)
+    metadataHandler.setNestedIfNotDefault({ "Mountain", "StarFogColor" }, args.starFogColor)
+    metadataHandler.setNestedIfNotDefault({ "Mountain", "StarStreamColors" }, args.starStreamColors)
     local beltC1 = args.starBeltColors1
     if #beltC1 == 0 then
         beltC1 = "[]"
@@ -92,10 +95,10 @@ function script.run(args)
     if #beltC2 == 0 then
         beltC2 = "[]"
     end
-    metadataHandler.setNestedIfNotDefault({"Mountain","StarBeltColors1"},beltC1)
-    metadataHandler.setNestedIfNotDefault({"Mountain","StarBeltColors2"},beltC2)
+    metadataHandler.setNestedIfNotDefault({ "Mountain", "StarBeltColors1" }, beltC1)
+    metadataHandler.setNestedIfNotDefault({ "Mountain", "StarBeltColors2" }, beltC2)
     local dataAfter = utils.deepcopy(metadataHandler.loadedData)
-    local forward = function ()
+    local forward = function()
         metadataHandler.loadedData = dataAfter
         local success, result = metadataHandler.update({})
         if not success then
@@ -103,7 +106,7 @@ function script.run(args)
         end
         return success, "Failed to write metadata!"
     end
-    local backward = function ()
+    local backward = function()
         metadataHandler.loadedData = dataBefore
         local success, result = metadataHandler.update({})
         if not success then
@@ -112,11 +115,12 @@ function script.run(args)
         return success, "Failed to write metadata!"
     end
     local success, message = forward()
-    if not success then 
+    if not success then
         logging.warning(message)
         return
     end
-    local snap = fallibleSnapshot.create("Configure Overworld",{success=true},backward,forward)
+    local snap = fallibleSnapshot.create("Configure Overworld", { success = true }, backward, forward)
     history.addSnapshot(snap)
 end
+
 return script

@@ -59,7 +59,7 @@ function script.run(args)
     else
         notifications.notify("Project has invalid structure, failed to load")
         logging.warning(string.format(
-        "Attempted to load project at %s, but the project did not have a single unique username. This likely means the project is non-standard and cannot be loaded at this time",
+            "Attempted to load project at %s, but the project did not have a single unique username. This likely means the project is non-standard and cannot be loaded at this time",
             args.projectLocation))
     end
 end

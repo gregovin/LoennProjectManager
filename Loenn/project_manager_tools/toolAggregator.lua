@@ -9,7 +9,8 @@ local supportedLonnVersion = v("0.7.10")
 local currentLonnVersion = meta.version
 
 local function safeAddImporter(modname)
-    pUtils.insertOrLog(importers,"failed to require project_manager_tools."..modname,mods.requireFromPlugin("project_manager_tools."..modname))
+    pUtils.insertOrLog(importers, "failed to require project_manager_tools." .. modname,
+        mods.requireFromPlugin("project_manager_tools." .. modname))
 end
 logging.info("[Loenn Project Manager] Loading Project Management tools")
 if supportedLonnVersion >= currentLonnVersion then
@@ -31,7 +32,7 @@ if supportedLonnVersion >= currentLonnVersion then
     safeAddImporter("configureOverworld")
     safeAddImporter("setMountainTextures")
     safeAddImporter("setMountainMusic")
-else 
+else
     safeAddImporter("versionNotif")
 end
 

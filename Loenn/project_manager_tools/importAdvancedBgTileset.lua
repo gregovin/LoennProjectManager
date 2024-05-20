@@ -126,15 +126,15 @@ function script.run(args)
     local preferedDefaultName = utils.humanizeVariableName(pName)
     if tilesetHandler.bgTilesets[(#args.name > 0 and args.name) or preferedDefaultName] then
         notifications.notify("Cannot create a tileset with name " .. pName ..
-        ", A tileset with that name allready exists")
+            ", A tileset with that name allready exists")
         return
     end
-    pName = string.lower(pName)                              -- to avoid problems with windows being case-insensitve we will just use one case!
+    pName = string.lower(pName) -- to avoid problems with windows being case-insensitve we will just use one case!
     while fileSystem.isFile(fileSystem.joinpath(tilesetDir, pName .. ".png")) do
         pName = pName ..
-        string.char(math.random(97, 97 + 25))                --add a random lowercase letter to the filename until its unique
+            string.char(math.random(97, 97 + 25)) --add a random lowercase letter to the filename until its unique
     end
-    tilesetName = pName .. ".png"                            --update the tileName to the new desired path
+    tilesetName = pName .. ".png"             --update the tileName to the new desired path
     --if we changed the display name then we should update it if we didn't allready have a displayName
     args.name = (#args.name > 0 and args.name) or preferedDefaultName
     path = fileSystem.convertToUnixPath(fileSystem.joinpath(path, pName))
@@ -154,8 +154,10 @@ function script.run(args)
     end
     local remTileset = function()
         local success, logMessage, humMessage = tilesetHandler.removeTileset(args.name, false, target)
-        if not success then logging.warning(string.format("failed to write to %s due to the following error:\n%s", target,
-                logMessage)) end
+        if not success then
+            logging.warning(string.format("failed to write to %s due to the following error:\n%s", target,
+                logMessage))
+        end
         celesteRenderer.loadCustomTilesetAutotiler(state)
         return success, string.format("Failed to remove tileset: {}", humMessage)
     end
