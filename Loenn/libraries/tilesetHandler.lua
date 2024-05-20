@@ -22,6 +22,7 @@ handler.fgTilesets = {}
 ---The table of background tilesets
 ---@type {[string]:table}
 handler.bgTilesets = {}
+--- A table that goes from ids to names for foreground and background tilesets
 handler.revDict = {
     ---@type {[string]:string}
     foreground = {},
@@ -81,7 +82,7 @@ function handler.getTilesets(foreground)
     end
 end
 
----get the template table
+---get the template table relevant for the value of foreground
 ---@param foreground boolean
 ---@return { [string]: table }
 function handler.getTemplates(foreground)
@@ -91,7 +92,9 @@ function handler.getTemplates(foreground)
         return handler.bgTemplates
     end
 end
-
+---Reload all tilesets
+---@param key string which layer to invalidate(tilesFg or tilesBg)
+---@param side table the side struct to reload
 function handler.reloadTilesets(key, side)
     celesteRender.loadCustomTilesetAutotiler(side)
 
@@ -499,7 +502,7 @@ end
 
 ---sort a list of tilesets in a stable way
 ---@param tilesets table the tilesets to sort
----@return table
+---@return table sorted
 function handler.sortedTilesetOpts(tilesets)
     local opts = {}
     for k, v in pairs(tilesets) do
