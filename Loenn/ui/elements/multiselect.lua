@@ -2,11 +2,11 @@
 local ui = require("ui.main")
 local uie = require("ui.elements.main")
 local uiu = require("ui.utils")
-local pUtils=require("mods").requireFromPlugin("libraries.projectUtils")
+local pUtils = require("mods").requireFromPlugin("libraries.projectUtils")
 
 require("ui.elements.input")
 
-uie.add("multiListItem",{
+uie.add("multiListItem", {
     base = "listItem",
 
     getSelected = function(self)
@@ -25,7 +25,7 @@ uie.add("multiListItem",{
 
     toggleSelected = function(self)
         local owner = self.owner or self.parent
-        owner.selected[self]= not owner.selected[self]
+        owner.selected[self] = not owner.selected[self]
         self.selected = owner.selected[self]
     end,
     onClick = function(self, x, y, button)
@@ -68,7 +68,7 @@ uie.add("multiselect", {
         for i = 1, #children do
             local c = children[i]
             if selected[c] then
-                out[i]=true
+                out[i] = true
             end
         end
 
@@ -77,8 +77,8 @@ uie.add("multiselect", {
 
     setSelectedIndicies = function(self, value)
         local children = self._itemsCache or self.children
-        for k,v in pairs(value) do
-            self.selected[children[k]]=v
+        for k, v in pairs(value) do
+            self.selected[children[k]] = v
         end
     end,
 
@@ -90,10 +90,10 @@ uie.add("multiselect", {
         end
 
         local children = self._itemsCache or self.children
-        for i,c in ipairs(children) do
+        for i, c in ipairs(children) do
             if selected[c] then
                 if c.data ~= nil then
-                    out[c.data] =true
+                    out[c.data] = true
                 else
                     out[c.text] = true
                 end
@@ -105,11 +105,11 @@ uie.add("multiselect", {
 
     setSelectedData = function(self, values)
         local children = self._itemsCache or self.children
-        for i,c in ipairs(children) do
+        for i, c in ipairs(children) do
             if c.data ~= nil then
-                self.selected[c]=values[c.data]
+                self.selected[c] = values[c.data]
             else
-                self.selected[c]=values[c.text]
+                self.selected[c] = values[c.text]
             end
         end
     end,
@@ -148,10 +148,10 @@ uie.add("multiselect", {
     end,
     updateText = function(self)
         local sel = $(pUtils.setAsList(self.selected)):map(k->k.text or k.data)()
-        self.text=pUtils.listToString(sel)
+        self.text = pUtils.listToString(sel)
     end,
-    runCallback= function (self)
-        self.cb(self,self:getSelectedData())
+    runCallback = function(self)
+        self.cb(self, self:getSelectedData())
     end,
     getItem = function(self, i)
         return self:getItemCached(self.data[i], i)

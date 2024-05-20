@@ -33,29 +33,30 @@ tool.validLayers = {
 local activeScriptPositions = {}
 
 local scriptLocationPreviewColors = {
-    {1, 0, 0},
-    {0, 1, 0},
-    {0, 0, 1},
-    {1, 1, 0},
-    {1, 0, 1},
-    {0, 1, 1},
-    {1, 1, 1},
+    { 1, 0, 0 },
+    { 0, 1, 0 },
+    { 0, 0, 1 },
+    { 1, 1, 0 },
+    { 1, 0, 1 },
+    { 0, 1, 1 },
+    { 1, 1, 1 },
 }
 
 function tool.reset(load)
     tool.currentScript = ""
     tool.scriptsAvailable = {}
-    tool.scriptsAvailable["project"] ={}
-    tool.scriptsAvailable["foreground"] ={}
-    tool.scriptsAvailable["background"] ={}
-    tool.scriptsAvailable["metadata"] ={}
-    tool.scripts = { }
+    tool.scriptsAvailable["project"] = {}
+    tool.scriptsAvailable["foreground"] = {}
+    tool.scriptsAvailable["background"] = {}
+    tool.scriptsAvailable["metadata"] = {}
+    tool.scripts = {}
     safeDelete.startup()
     if load then
         tool.load()
         toolUtils.sendLayerEvent(tool, tool.layer)
     end
 end
+
 tool.reset(false)
 
 local function addScript(name, displayName, tooltip, layer)
@@ -63,12 +64,11 @@ local function addScript(name, displayName, tooltip, layer)
         name = name,
         displayName = (displayName or name),
         tooltipText = tooltip,
-    } )
+    })
 end
 
 function tool.execScript(script, args, ctx)
-
-    ctx = ctx or { }
+    ctx = ctx or {}
 
     ctx.mouseX = ctx.mouseX or 0
     ctx.mouseY = ctx.mouseY or 0
@@ -86,7 +86,7 @@ function tool.safeExecScript(script, args, contextTable)
         notifications.notify("Failed to run script!")
     end
     if script.nextScript then
-        tool.useScript(script.nextScript,contextTable)
+        tool.useScript(script.nextScript, contextTable)
     end
 end
 
@@ -110,7 +110,7 @@ function tool.useScript(script, contextTable)
         if not success then
             logging.warning(string.format("Failed to ititialize script!"))
             logging.warning(debug.traceback(message))
-            notifications.notify(message,10)
+            notifications.notify(message, 10)
             return
         end
     end
@@ -158,6 +158,7 @@ function tool.mouseclicked(x, y, button, istouch, pressed)
         })
     end
 end
+
 function tool.getMaterials(layer)
     return tool.scriptsAvailable[layer]
 end
@@ -176,8 +177,8 @@ local function finalizeScript(handler, name)
 end
 
 function tool.loadScripts()
-    for i,importer in ipairs(importers) do
-        finalizeScript(importer,importer.name)
+    for i, importer in ipairs(importers) do
+        finalizeScript(importer, importer.name)
     end
 end
 

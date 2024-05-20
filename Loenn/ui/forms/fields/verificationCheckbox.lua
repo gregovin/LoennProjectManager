@@ -5,8 +5,8 @@ verificationCheckbox.fieldType = "loennProjectManager.verificationCheckbox"
 verificationCheckbox._MT = {}
 verificationCheckbox._MT.__index = {}
 local invalidStyle = {
-    normalBorder = {0.65, 0.2, 0.2, 0.9, 2.0},
-    focusedBorder = {0.9, 0.2, 0.2, 1.0, 2.0}
+    normalBorder = { 0.65, 0.2, 0.2, 0.9, 2.0 },
+    focusedBorder = { 0.9, 0.2, 0.2, 1.0, 2.0 }
 }
 function verificationCheckbox._MT.__index:setValue(value)
     self.currentValue = value
@@ -19,12 +19,12 @@ end
 function verificationCheckbox._MT.__index:fieldValid()
     return type(self:getValue()) == "boolean" and self:getValue()
 end
+
 local function updateFieldStyle(formField, wasValid, valid)
     if wasValid ~= valid then
         if valid then
             -- Reset to default
             formField.checkbox.style = nil
-
         else
             formField.checkbox.style = invalidStyle
         end
@@ -37,7 +37,7 @@ local function fieldChanged(formField)
     return function(element, new, old)
         local wasValid = formField:fieldValid()
 
-        formField.currentValue =new
+        formField.currentValue = new
 
         local valid = formField:fieldValid()
 

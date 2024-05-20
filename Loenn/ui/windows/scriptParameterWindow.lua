@@ -42,7 +42,8 @@ local function getItemFieldOrder(scriptHandler)
 end
 
 local function getItemFieldInformation(scriptHandler)
-    local fieldInformation = scriptHandler.fieldInformation and utils.callIfFunction(scriptHandler.fieldInformation) or {}
+    local fieldInformation = scriptHandler.fieldInformation and utils.callIfFunction(scriptHandler.fieldInformation) or
+    {}
 
     return utils.deepcopy(fieldInformation)
 end
@@ -150,7 +151,8 @@ function contextWindow.createContextMenu(scriptHandler, callbackOnAccept, contex
         }
     }
 
-    local windowTitle = "Editing Script Parameters\n" .. scriptHandler.displayName --tostring(language.ui.selection_context_window.title)
+    local windowTitle = "Editing Script Parameters\n" ..
+    scriptHandler.displayName                                                      --tostring(language.ui.selection_context_window.title)
     local selectionForm = form.getForm(buttons, dummyData, {
         fields = fieldInformation,
         fieldOrder = fieldOrder

@@ -38,11 +38,11 @@ local function createSelectFileCallback(self, button)
     end
 end
 
-local function buttonPressed(self, extension, location,requireDir)
-    location=location or fileLocations.getCelesteDir()
+local function buttonPressed(self, extension, location, requireDir)
+    location = location or fileLocations.getCelesteDir()
     if requireDir then
         return function(button)
-            filesystem.openFolderDialog(location,createSelectFileCallback(self, button))
+            filesystem.openFolderDialog(location, createSelectFileCallback(self, button))
         end
     else
         return function(button)
@@ -58,7 +58,8 @@ function directFilepathField.getElement(name, value, options)
     local maxWidth = options.maxWidth or options.width or 160
 
     local label = uiElements.label(options.displayName or name)
-    local button = uiElements.button("", buttonPressed(formField, options.extension or "bin",options.location,options.requireDir)):with({
+    local button = uiElements.button("",
+        buttonPressed(formField, options.extension or "bin", options.location, options.requireDir)):with({
         minWidth = minWidth,
         maxWidth = maxWidth
     })

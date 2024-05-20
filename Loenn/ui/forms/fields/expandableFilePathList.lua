@@ -20,11 +20,13 @@ end
 function directFilepathList._MT.__index:getValue()
     return self.currentValue
 end
+
 function directFilepathList._MT.__index:validatePath(v)
-    return type(v) == "string" and (filesystem.isFile(v) or filesystem.isDirectory(v) or (v=="" and self.allowEmpty))
+    return type(v) == "string" and (filesystem.isFile(v) or filesystem.isDirectory(v) or (v == "" and self.allowEmpty))
 end
+
 function directFilepathList._MT.__index:fieldValid()
-    for i,v in ipairs(self:getValue()) do
+    for i, v in ipairs(self:getValue()) do
         if not self:validatePath(v) then
             return false
         end
@@ -39,16 +41,16 @@ local function updateButtonLabel(button, newFilepath)
         button.label.tooltipText = newFilepath
     end
 end
-local function getLabelString(names,maxLen)
+local function getLabelString(names, maxLen)
     local sep = ""
     local out = ""
-    for i,v in ipairs(names) do
+    for i, v in ipairs(names) do
         out = out .. sep .. (utils.filename(utils.stripExtension(v or "")) or "")
         sep = ", "
         if i == maxLen then
             local rem = #names - maxLen
-            if rem> 0 then
-                out = out .. sep .. string.format("... %s more",rem)
+            if rem > 0 then
+                out = out .. sep .. string.format("... %s more", rem)
             end
             return out
         end
@@ -59,16 +61,16 @@ local function createSelectFileCallback(self, button, idx)
     return function(filepath)
         updateButtonLabel(button, filepath)
         self.currentValue[idx] = filepath or ""
-        self.button.label.text = getLabelString(self.currentValue,self.maxLen)
+        self.button.label.text = getLabelString(self.currentValue, self.maxLen)
         self:notifyFieldChanged()
     end
 end
 
-local function buttonPressed(self, extension, location,requireDir, idx)
-    location=location or fileLocations.getCelesteDir()
+local function buttonPressed(self, extension, location, requireDir, idx)
+    location = location or fileLocations.getCelesteDir()
     if requireDir then
         return function(button)
-            filesystem.openFolderDialog(location,createSelectFileCallback(self, button, idx))
+            filesystem.openFolderDialog(location, createSelectFileCallback(self, button, idx))
         end
     else
         return function(button)
@@ -87,40 +89,43 @@ function directFilepathList.getElement(name, value, options)
     formField.allowEmpty = options.allowEmpty
     local maxLen = options.maxLen or 1
     local label = uiElements.label(options.displayName or name)
-    local button = uiElements.button(getLabelString(value,maxLen),function () end):with({
+    local button = uiElements.button(getLabelString(value, maxLen), function() end):with({
         minWidth = minWidth,
         maxWidth = maxWidth
     })
     formField.files = {}
-    for i,v in ipairs(value) do
-        local innerButton = uiElements.button((utils.filename(utils.stripExtension(v) or "") or ""),buttonPressed(formField, options.extension or "bin",options.location,options.requireDir,i)):with({
+    for i, v in ipairs(value) do
+        local innerButton = uiElements.button((utils.filename(utils.stripExtension(v) or "") or ""),
+            buttonPressed(formField, options.extension or "bin", options.location, options.requireDir, i)):with({
             minWidth = innerMinWidth,
             maxWidth = innerMaxWidth
         })
         formField.files[i] = innerButton
     end
-    local buttonContext =  contextMenu.addContextMenu(button,function ()
-        return expandableGrid.getGrid(formField.files,3,{minWidth=((innerMinWidth-25)/2),maxWidth=((innerMaxWidth-25)/2)},
-            function ()
-                table.insert(value,"")
+    local buttonContext = contextMenu.addContextMenu(button, function()
+        return expandableGrid.getGrid(formField.files, 3,
+            { minWidth = ((innerMinWidth - 25) / 2), maxWidth = ((innerMaxWidth - 25) / 2) },
+            function()
+                table.insert(value, "")
 
-                local innerButton = uiElements.button("",buttonPressed(formField,options.extension or "bin",options.location,options.requireDir,#value)):with({
+                local innerButton = uiElements.button("",
+                    buttonPressed(formField, options.extension or "bin", options.location, options.requireDir, #value))
+                :with({
                     minWidth = innerMinWidth,
                     maxWidth = innerMaxWidth
                 })
                 table.insert(formField.files, innerButton)
-                formField.button.label.text = getLabelString(value,maxLen)
+                formField.button.label.text = getLabelString(value, maxLen)
                 return innerButton
             end,
-            function (idx)
+            function(idx)
                 table.remove(value)
                 table.remove(formField.files)
-                formField.button.label.text = getLabelString(value,maxLen)
+                formField.button.label.text = getLabelString(value, maxLen)
             end
         )
-    
-    end,{
-        shouldShowMenu = function () return true end,
+    end, {
+        shouldShowMenu = function() return true end,
         mode = "focused"
     })
 

@@ -21,8 +21,8 @@ colorListField._MT.__index = {}
 local fallbackHexColor = "ffffff"
 
 local invalidStyle = {
-    normalBorder = {0.65, 0.2, 0.2, 0.9, 2.0},
-    focusedBorder = {0.9, 0.2, 0.2, 1.0, 2.0}
+    normalBorder = { 0.65, 0.2, 0.2, 0.9, 2.0 },
+    focusedBorder = { 0.9, 0.2, 0.2, 1.0, 2.0 }
 }
 
 -- Vanilla accepts plain numbers here, these come from the packer making "000000" into 0, etc.
@@ -35,7 +35,7 @@ local function fixNumberColor(value)
 end
 local function fixNumberColors(values)
     local out = {}
-    for i,v in ipairs(values) do
+    for i, v in ipairs(values) do
         out[i] = fixNumberColor(v) or fallbackHexColor
     end
     return out
@@ -53,25 +53,25 @@ end
 function colorListField._MT.__index:getValue()
     return self.currentValue
 end
+
 function colorListField._MT.__index:colorValid(idx)
     local current = self:getValue()[idx]
     local fieldEmpty = current == nil or #current == 0
     if fieldEmpty then
         return self._allowEmpty
-
     elseif self._allowXNAColors then
         local color = utils.getColor(current)
 
         return not not color
-
     else
         local parsed, r, g, b = utils.parseHexColor(current)
 
         return parsed
     end
 end
+
 function colorListField._MT.__index:fieldValid(...)
-    for i,_ in ipairs(self:getValue()) do
+    for i, _ in ipairs(self:getValue()) do
         if not self:colorValid(i) then return false end
     end
     return true
@@ -104,8 +104,8 @@ local function cacheFieldPreviewColor(element, new)
 
     return parsed, r, g, b
 end
-local function innerFieldChanged(formField,idx)
-    return function(element,new, old)
+local function innerFieldChanged(formField, idx)
+    return function(element, new, old)
         local parsed, r, g, b = cacheFieldPreviewColor(element, new)
         local wasValid = formField:colorValid()
         local valid = parsed
@@ -116,16 +116,15 @@ local function innerFieldChanged(formField,idx)
             if valid then
                 -- Reset to default
                 formField.colors[idx].style = nil
-
             else
                 formField.colors[idx].style = invalidStyle
             end
 
             formField.colors[idx]:repaint()
         end
-        
-        local overValid =formField:fieldValid()
-        if overWasValid~=overValid then
+
+        local overValid = formField:fieldValid()
+        if overWasValid ~= overValid then
             if overValid then
                 formField.field.style = nil
             else
@@ -133,7 +132,7 @@ local function innerFieldChanged(formField,idx)
             end
             formField.field:repaint()
         end
-        formField.field:setText(pUtils.listToString(fixNumberColors(formField.currentValue),", "))
+        formField.field:setText(pUtils.listToString(fixNumberColors(formField.currentValue), ", "))
         formField:notifyFieldChanged()
     end
 end
@@ -163,11 +162,11 @@ local function fieldDrawColorPreview(orig, element)
     local drawX, drawY, width, height = getColorPreviewArea(element)
 
     love.graphics.setColor(0, 0, 0)
-    love.graphics.rectangle("fill",  drawX, drawY, width, height)
+    love.graphics.rectangle("fill", drawX, drawY, width, height)
     love.graphics.setColor(1, 1, 1)
-    love.graphics.rectangle("fill",  drawX + 1, drawY + 1, width - 2, height - 2)
+    love.graphics.rectangle("fill", drawX + 1, drawY + 1, width - 2, height - 2)
     love.graphics.setColor(r, g, b, a)
-    love.graphics.rectangle("fill",  drawX + 2, drawY + 2, width - 4, height - 4)
+    love.graphics.rectangle("fill", drawX + 2, drawY + 2, width - 4, height - 4)
     love.graphics.setColor(pr, pg, pb, pa)
 end
 
@@ -177,7 +176,6 @@ local function shouldShowMenu(element, x, y, button)
 
     if button == menuButton then
         return true
-
     elseif button == actionButton then
         local drawX, drawY, width, height = getColorPreviewArea(element)
 
@@ -186,10 +184,10 @@ local function shouldShowMenu(element, x, y, button)
 
     return false
 end
-local function superShouldShowMenu(element,x,y,button)
+local function superShouldShowMenu(element, x, y, button)
     local menuButton = configs.editor.contextMenuButton
     local actionButton = configs.editor.toolActionButton
-    if button == menuButton or button ==actionButton then return true end
+    if button == menuButton or button == actionButton then return true end
     return false
 end
 local function addElement()
@@ -198,7 +196,7 @@ end
 function colorListField.getElement(name, value, options)
     local formField = {}
 
-    for i,v in ipairs(value) do
+    for i, v in ipairs(value) do
         value[i] = fixNumberColor(v)
     end
 
@@ -212,8 +210,8 @@ function colorListField.getElement(name, value, options)
     local label = uiElements.label(options.displayName or name)
     formField.colors = {}
     local colorContexts = {}
-    for i,v in ipairs(value) do
-        local field = uiElements.field(v or fallbackHexColor, innerFieldChanged(formField,i)):with({
+    for i, v in ipairs(value) do
+        local field = uiElements.field(v or fallbackHexColor, innerFieldChanged(formField, i)):with({
             minWidth = innerMinWidth,
             maxWidth = innerMaxWidth,
             _allowXNAColors = allowXNAColors,
@@ -250,22 +248,22 @@ function colorListField.getElement(name, value, options)
         formField.colors[i] = field
         colorContexts[i] = fieldWithContext
     end
-    local startText = pUtils.listToString(fixNumberColors(value),", ")
+    local startText = pUtils.listToString(fixNumberColors(value), ", ")
     local field = uiElements.field(startText, fieldChanged(formField)):with({
         minWidth = minWidth,
         maxWidth = maxWidth,
         _allowXNAColors = allowXNAColors,
         _allowEmpty = allowEmpty
     })
-    local gridLs= colorContexts
+    local gridLs = colorContexts
     local fieldWithContext = contextMenu.addContextMenu(
         field,
-        function ()
-            return expandableGrid.getGrid(gridLs,4,{minWidth=((innerMinWidth-25)/2),maxWidth=((innerMaxWidth-25)/2)},
-                function ()
-                    table.insert(value,fallbackHexColor)
-                    local changed= innerFieldChanged(formField,#value)
-                    local field = uiElements.field(fallbackHexColor,changed ):with({
+        function()
+            return expandableGrid.getGrid(gridLs, 4, { minWidth = ((innerMinWidth - 25) / 2), maxWidth = ((innerMaxWidth - 25) / 2) },
+                function()
+                    table.insert(value, fallbackHexColor)
+                    local changed = innerFieldChanged(formField, #value)
+                    local field = uiElements.field(fallbackHexColor, changed):with({
                         minWidth = innerMinWidth,
                         maxWidth = innerMaxWidth,
                         _allowXNAColors = allowXNAColors,
@@ -286,9 +284,9 @@ function colorListField.getElement(name, value, options)
                                 showHSV = options.showHSV,
                                 showRGB = options.showRGB,
                             }
-            
+
                             local fieldText = getXNAColorHex(field, field:getText() or "")
-            
+
                             return colorPicker.getColorPicker(fieldText, pickerOptions)
                         end,
                         {
@@ -296,21 +294,21 @@ function colorListField.getElement(name, value, options)
                             mode = "focused"
                         }
                     )
-            
+
                     cacheFieldPreviewColor(field, fallbackHexColor)
                     field:setPlaceholder(fallbackHexColor)
                     table.insert(formField.colors, field)
-                    table.insert(colorContexts,fieldWithContext)
-                    changed(field,fallbackHexColor)
+                    table.insert(colorContexts, fieldWithContext)
+                    changed(field, fallbackHexColor)
                     return field
                 end,
                 function(idx)
                     table.remove(value)
                     table.remove(formField.colors)
                     table.remove(colorContexts)
-                    field:setText(pUtils.listToString(fixNumberColors(value),", "))
+                    field:setText(pUtils.listToString(fixNumberColors(value), ", "))
                 end)
-            end,
+        end,
         {
             shouldShowMenu = superShouldShowMenu,
             mode = "focused"

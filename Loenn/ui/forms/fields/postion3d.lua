@@ -18,13 +18,13 @@ positionField._MT = {}
 positionField._MT.__index = {}
 
 local invalidStyle = {
-    normalBorder = {0.65, 0.2, 0.2, 0.9, 2.0},
-    focusedBorder = {0.9, 0.2, 0.2, 1.0, 2.0}
+    normalBorder = { 0.65, 0.2, 0.2, 0.9, 2.0 },
+    focusedBorder = { 0.9, 0.2, 0.2, 1.0, 2.0 }
 }
 
 function positionField._MT.__index:setValue(value)
     self.currentTexts = {
-        tostring(value[1]),tostring(value[2]),tostring(value[3])
+        tostring(value[1]), tostring(value[2]), tostring(value[3])
     }
     self.posX:setText(self.currentTexts[1])
     self.posY:setText(self.currentTexts[2])
@@ -44,15 +44,19 @@ function positionField._MT.__index:getCurrentText()
 end
 
 function positionField._MT.__index:fieldValid()
-   local v= self:fieldsValid()
-   return v[1] and v[2] and v[3]
+    local v = self:fieldsValid()
+    return v[1] and v[2] and v[3]
 end
+
 function positionField._MT.__index:validateIdx(v)
-    return type(v)=="number" and v>=self.minValue and v<=self.maxValue
+    return type(v) == "number" and v >= self.minValue and v <= self.maxValue
 end
+
 function positionField._MT.__index:fieldsValid()
-    return {self:validateIdx(self:getValue()[1]), self:validateIdx(self:getValue()[2]), self:validateIdx(self:getValue()[3])}
+    return { self:validateIdx(self:getValue()[1]), self:validateIdx(self:getValue()[2]), self:validateIdx(self:getValue()
+    [3]) }
 end
+
 local function shouldShowMenu(element, x, y, button)
     local menuButton = configs.editor.contextMenuButton
     local actionButton = configs.editor.toolActionButton
@@ -71,7 +75,7 @@ end
 local function updateFieldStyle(formField, valid)
     -- Make sure the textbox visual style matches the input validity
     local validVisuals = formField.validVisuals
-    if validVisuals[1]~= valid[1] then
+    if validVisuals[1] ~= valid[1] then
         if not valid[1] then
             formField.posX.style = invalidStyle
         else
@@ -103,19 +107,19 @@ local function updateFieldStyle(formField, valid)
     end
 end
 
-local function fieldChanged(formField,col)
+local function fieldChanged(formField, col)
     return function(element, new, old)
-        formField.currentValue[col] = #new>0 and tonumber(new)
-        
+        formField.currentValue[col] = #new > 0 and tonumber(new)
+
         formField.field:setText(pUtils.listToString(formField.currentValue, ", "))
         local valid = formField:fieldsValid()
         updateFieldStyle(formField, valid)
         formField:notifyFieldChanged()
     end
 end
-local function overUpdateFieldStyle(formField,valid)
+local function overUpdateFieldStyle(formField, valid)
     local validVisuals = formField.overValidVisuals
-    if validVisuals ~=valid then
+    if validVisuals ~= valid then
         if not valid then
             formField.field.style = invalidStyle
         else
@@ -128,7 +132,7 @@ end
 local function overFieldChanged(formField)
     return function(element, new, old)
         local valid = formField:fieldValid()
-        overUpdateFieldStyle(formField,valid)
+        overUpdateFieldStyle(formField, valid)
         formField:notifyFieldChanged()
     end
 end
@@ -148,19 +152,19 @@ function positionField.getElement(name, value, options)
     local editable = options.editable
 
     local label = uiElements.label(options.displayName or name)
-    local field = uiElements.field(pUtils.listToString(value,", "),overFieldChanged(formField)):with({
+    local field = uiElements.field(pUtils.listToString(value, ", "), overFieldChanged(formField)):with({
         minWidth = minWidth,
         maxWidth = maxWidth
     })
-    local posX = uiElements.field(tostring(value[1]), fieldChanged(formField,1)):with({
+    local posX = uiElements.field(tostring(value[1]), fieldChanged(formField, 1)):with({
         minWidth = nMinWidth,
         maxWidth = nMaxWidth
     })
-    local posY = uiElements.field(tostring(value[2]), fieldChanged(formField,2)):with({
+    local posY = uiElements.field(tostring(value[2]), fieldChanged(formField, 2)):with({
         minWidth = nMinWidth,
         maxWidth = nMaxWidth
     })
-    local posZ = uiElements.field(tostring(value[3]),fieldChanged(formField,3)):with({
+    local posZ = uiElements.field(tostring(value[3]), fieldChanged(formField, 3)):with({
         minWidth = nMinWidth,
         maxWidth = nMaxWidth
     })
@@ -179,11 +183,11 @@ function positionField.getElement(name, value, options)
     local z = uiElements.label("z")
     local fieldContext = contextMenu.addContextMenu(
         field,
-        function ()
+        function()
             return grid.getGrid({
-                x,y,z,
-                posX,posY,posZ
-            },3)
+                x, y, z,
+                posX, posY, posZ
+            }, 3)
         end,
         {
             shouldShowMenu = shouldShowMenu,
@@ -206,7 +210,7 @@ function positionField.getElement(name, value, options)
     formField.initialValue = value
     formField.currentValue = value
     formField.valueTransformer = valueTransformer
-    formField.validVisuals = {true,true,true}
+    formField.validVisuals = { true, true, true }
     formField.overValidVisuals = true
     formField.width = 2
     formField.elements = {

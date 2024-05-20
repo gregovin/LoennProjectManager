@@ -35,7 +35,7 @@ local function columnWidthHook(grids, columnIndex)
         return width
     end
 end
-local function makeRow(columns,outerPadding,columnSpacing,rows,columnCount,columnElements,rowSpacing)
+local function makeRow(columns, outerPadding, columnSpacing, rows, columnCount, columnElements, rowSpacing)
     local row = uiElements.row(columns):with({
         style = {
             padding = outerPadding,
@@ -71,7 +71,6 @@ local function makeRow(columns,outerPadding,columnSpacing,rows,columnCount,colum
                         if centerVertically then
                             element.__gridY = offsetY
                             element.__gridY += math.floor((rowHeight - element.height) / 2)
-
                         else
                             element.__gridY = offsetY
                         end
@@ -113,7 +112,6 @@ function expGridElement.getGrid(elements, columnCount, buttonOptions, createElem
         -- Add blank elements in empty spaces
         if not element then
             table.insert(targetColumn, uiElements.new({}))
-
         else
             table.insert(targetColumn, element)
 
@@ -136,10 +134,10 @@ function expGridElement.getGrid(elements, columnCount, buttonOptions, createElem
             rows += 1
         end
     end
-    local plus = uiElements.button("+",function (button) end):with(buttonOptions)
-    local delete = uiElements.button("-",function (button) end):with(buttonOptions)
-    local both = uiElements.row({plus,delete})
-    table.insert(columnElements[1],both)
+    local plus = uiElements.button("+", function(button) end):with(buttonOptions)
+    local delete = uiElements.button("-", function(button) end):with(buttonOptions)
+    local both = uiElements.row({ plus, delete })
+    table.insert(columnElements[1], both)
     plus:hook({
         layoutLateLazy = function(orig, self)
             orig(self)
@@ -174,7 +172,7 @@ function expGridElement.getGrid(elements, columnCount, buttonOptions, createElem
             end
         end
     })
-    rows+=1
+    rows += 1
     for i = 1, columnCount do
         -- Spacing needed for dropdown positioning
         columns[i] = uiElements.group(columnElements[i]):with({
@@ -184,55 +182,58 @@ function expGridElement.getGrid(elements, columnCount, buttonOptions, createElem
         })
     end
 
-    local row = makeRow(columns,outerPadding,columnSpacing,rows,columnCount,columnElements,rowSpacing)
+    local row = makeRow(columns, outerPadding, columnSpacing, rows, columnCount, columnElements, rowSpacing)
     local wrap = uiElements.column({})
     wrap:addChild(row)
-    plus:with({onClick = function(self, x, y, button)
-        if button ~= 1 then
-            return
-        end
-        row:removeSelf()
-        local moveButton = column==1
-        local element = utils.callIfFunction(createElement) or uiElements.new({})
-        local targetColumn = columnElements[column]
-        local b
-        if moveButton then
-            b=table.remove(targetColumn)
-        end
-        table.insert(targetColumn,element)
-        element:hook({
-            layoutLateLazy = function(orig, self)
-                orig(self)
-
-                if self.__gridY then
-                    self.y = self.__gridY
-
-                    self.parent:layout()
-                end
-            end
-        })
-        if moveButton then
-            table.insert(targetColumn,b)
-        end
-        columns[column] = uiElements.group(targetColumn):with({
-            style = {
-                spacing = 0
-            }})
-        column+=1
-        if column > columnCount then
-            column = 1
-            rows += 1
-        end
-        
-        wrap:addChild(row)
-        self:reflow()
-    end})
-    delete:with({
-        onClick = function (self, x, y, button)
+    plus:with({
+        onClick = function(self, x, y, button)
             if button ~= 1 then
                 return
             end
-            
+            row:removeSelf()
+            local moveButton = column == 1
+            local element = utils.callIfFunction(createElement) or uiElements.new({})
+            local targetColumn = columnElements[column]
+            local b
+            if moveButton then
+                b = table.remove(targetColumn)
+            end
+            table.insert(targetColumn, element)
+            element:hook({
+                layoutLateLazy = function(orig, self)
+                    orig(self)
+
+                    if self.__gridY then
+                        self.y = self.__gridY
+
+                        self.parent:layout()
+                    end
+                end
+            })
+            if moveButton then
+                table.insert(targetColumn, b)
+            end
+            columns[column] = uiElements.group(targetColumn):with({
+                style = {
+                    spacing = 0
+                }
+            })
+            column += 1
+            if column > columnCount then
+                column = 1
+                rows += 1
+            end
+
+            wrap:addChild(row)
+            self:reflow()
+        end
+    })
+    delete:with({
+        onClick = function(self, x, y, button)
+            if button ~= 1 then
+                return
+            end
+
             column -= 1
             if column <= 0 and rows <= 2 then
                 column += 1
@@ -240,24 +241,25 @@ function expGridElement.getGrid(elements, columnCount, buttonOptions, createElem
             end
             row:removeSelf()
             if column == 0 then
-                rows-=1
+                rows -= 1
                 column = columnCount
             end
             local targetColumn = columnElements[column]
-            local moveButton = column==1
+            local moveButton = column == 1
             local b
             if moveButton then
                 b = table.remove(targetColumn)
             end
-            removeElement((rows-1)*columnCount + column)
+            removeElement((rows - 1) * columnCount + column)
             table.remove(targetColumn)
             if moveButton then
-                table.insert(targetColumn,b)
+                table.insert(targetColumn, b)
             end
             columns[column] = uiElements.group(targetColumn):with({
                 style = {
                     spacing = 0
-                }})
+                }
+            })
             wrap:addChild(row)
             self:reflow()
         end

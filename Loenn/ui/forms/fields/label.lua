@@ -12,6 +12,7 @@ end
 function labelField._MT.__index:getValue()
     return nil
 end
+
 --labels are always valid
 function labelField._MT.__index:fieldValid()
     return true
@@ -25,10 +26,11 @@ function labelField.getElement(name, value, options)
     formfield.initialValue = nil
     formfield.currentValue = nil
     --Convince to use newlines
-    formfield.width = 4 
+    formfield.width = 4
     formfield.elements = {
-        label,false,false,false
+        label, false, false, false
     }
-    return setmetatable(formfield,labelField._MT)
+    return setmetatable(formfield, labelField._MT)
 end
+
 return labelField
