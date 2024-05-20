@@ -82,7 +82,7 @@ end
 ---@param campaignLocation string the path to the campaign
 function loaders.loadCampaign(campaignLocation)
     --get the map names from the filenames within the campaign location
-    local maps = ($(p_utils.list_dir(campaignLocation)):filter(file->fileSystem.fileExtension(file)=="bin"):map(file->fileSystem.stripExtension(file)))()
+    local maps = ($(p_utils.list_dir(campaignLocation)):filter(file->(fileSystem.fileExtension(file)=="bin")):map(file->(fileSystem.stripExtension(file))))()
     local campaignName = fileSystem.filename(campaignLocation)
     --update the state
     settings.set("SelectedCampaign", campaignName, "recentProjectInfo")
