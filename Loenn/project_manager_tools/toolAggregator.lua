@@ -32,8 +32,8 @@ if supportedLonnVersion >= currentLonnVersion then
     safeAddImporter("configureOverworld")
     safeAddImporter("setMountainTextures")
     safeAddImporter("setMountainMusic")
+    safeAddImporter("editEndscreen")
 else
     safeAddImporter("versionNotif")
 end
-
 return importers

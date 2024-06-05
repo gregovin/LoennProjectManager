@@ -2,5 +2,16 @@ mods.LoennProjectManager.name=Loenn Project Manager
 
 tools.name.project_manager=Project Manager
 layers.name.project=Management
-layers.name.foreground=Fg tiles
-layers.name.background=Bg tiles
+layers.name.foreground=Fg Tiles
+layers.name.background=Bg Tiles
+layers.name.metadata=Metadata
+
+ui.metadata_screen_window.preview.unknown_texture=Unknown Texture
+ui.metadata_screen_window.preview.no_preview=No Preview
+ui.metadata_screen_window.new_options.based_on_current=Based On Current
+ui.metadata_screen_window.new_options.layer=Layer
+ui.metadata_screen_window.new_options.frame=Frame
+ui.metadata_screen_window.new_options.ui=Title
+language.ui.metadata_screen_window.new_options.unused=New File
+language.ui.metadata_screen_window.form.new=New
+language.ui.metadata_screen_window.form.remove=Remove
