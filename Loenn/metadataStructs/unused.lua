@@ -12,6 +12,7 @@ function unusedStruct.decode(data)
             res[k] = v
         end
     end
+    res.file = res.file or ""
     return res
 end
 

@@ -102,7 +102,7 @@ local function getEntryItems(targets, items, parent)
             if fname then
                 fileClaims[fname] = fileClaims[fname] and fileClaims[fname] + 1 or 0
             end
-            table.insert(items {
+            table.insert(items, {
                 text = listItem,
                 data = {
                     entry = item,
@@ -431,10 +431,13 @@ local function changeItemUsed(interactionData)
     local usedCount = usedListItemCount(interactionData)
 
     local items, parent, index, parentItem = findItemInMetadata(interactionData)
+    if not parent or not items then error("oops") end
     local parentType = utils.typeof(parentItem)
 
     local movedItem = listTarget.entry
     local insertionIndex = used and #listElement.children or usedCount + 1
+    local itm = table.remove(parent, index)
+    table.insert(items, itm)
     moveIndex(listElement.children, listIndex, insertionIndex)
     listElement:reflow()
     listItem:onClick(0, 0, 1)
@@ -525,7 +528,6 @@ local function addNewItem(interactionData, formFields)
     end
     if newItem then
         local items, parrentTable, index = findItemInMetadata(interactionData)
-        if not parrentTable then error("oops, this shouldn't happen!") end
         local _, listIndex = findCurrentListItem(interactionData)
         local listItems = getEntryItems({ newItem }, {}, nil)
 
@@ -534,11 +536,12 @@ local function addNewItem(interactionData, formFields)
             listIndex = 0
             index = 0
         end
+        if not parrentTable then error("oops, this shouldn't happen!") end
         for i, item in ipairs(listItems) do
             local listItem = uiElements.listItem(item.text, item.data)
-            listItem.owner = listItems
+            listItem.owner = listElement
 
-            table.insert(listItem.children, listIndex + i, listItem)
+            table.insert(listElement.children, listIndex + i, listItem)
         end
         table.insert(parrentTable, index + 1, newItem)
         if #listItems > 0 then
@@ -552,6 +555,7 @@ local function addNewItem(interactionData, formFields)
             end
         end
     end
+    logging.info("Current list elements: " .. #interactionData.itemListElement.children)
     return not not newItem
 end
 ---Remove the selected item now
@@ -590,7 +594,7 @@ local function removeItem(interactionData)
         else
             interactionData.listTarget = getDefaultListTarget()
 
-            metadataScreenWindow.updateMetadataForm(interactionData)
+            metadataScreenWindow.updateItemForm(interactionData)
             metadataScreenWindow.updateItemPreview(interactionData)
         end
     end
@@ -640,7 +644,7 @@ local function getNewDropdownOptions(item, usingDefault)
         }
     })
     if utils.typeof(item) == "layer" then
-        table.insert(options {
+        table.insert(options, {
             text = tostring(language.ui.metadata_screen_window.new_options.frame),
             data = {
                 method = "frame"
@@ -867,11 +871,12 @@ function metadataScreenWindow.getWindowContent(map)
     interactionData.formContainerGroup = itemFormGroup
     interactionData.itemPreviewGroup = itemPreview
     interactionData.itemListElement = itemList
+    interactionData.items = {}
 
     local itemListPreviewRow = uiElements.row({
         itemListColumn:with(uiUtils.fillHeight(false)),
         itemPreview
-    })
+    }):with(uiUtils.fillHeight(true))
     local layout = uiElements.column({
         itemListPreviewRow,
         itemFormGroup
@@ -892,10 +897,14 @@ function metadataScreenWindow.editMetadataScreen(map, title)
     })
     local windowCloseCallback = windowPersister.getWindowCloseCallback(windowPersisterName)
     windowPersister.trackWindow(windowPersisterName, window)
-    metadataWindowGroup = uiElements.group({})
-    metadataWindowGroup.parent:addChild(window)
+    require("ui.windows").windows["scriptMetadataScreenWindow"].parent:addChild(window)
     widgetUtils.addWindowCloseButton(window, windowCloseCallback)
     return window
+end
+
+function metadataScreenWindow.getWindow()
+    metadataWindowGroup = uiElements.group({})
+    return metadataWindowGroup
 end
 
 return metadataScreenWindow

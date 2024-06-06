@@ -15,7 +15,7 @@ local fieldInformation = {
 
 }
 function unused.displayName(language, item)
-    return fileSystem.stripExtension(fileSystem.fileName(item.file))
+    return "File: " .. (fileSystem.stripExtension(fileSystem.filename(item.file) or "") or "")
 end
 
 function unused.filename(item)
