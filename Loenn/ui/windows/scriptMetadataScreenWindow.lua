@@ -183,8 +183,8 @@ function metadataScreenWindow.getItemPreview(interactionData)
         return
     end
 
-    if itemType == "frame" then
-        local texture = formData.texture
+    if itemType == "frame" or itemType == "unused" then
+        local texture = formData.texture or formData.file
         local sprite = atlases.getResource(texture)
 
         if sprite then
@@ -236,7 +236,13 @@ end
 local function prepareFormData(interactionData)
     local listTarget = interactionData.listTarget
     local formData = {}
-
+    if utils.typeof(listTarget.entry) == "frame" then
+        local keys = {}
+        for k, _ in pairs(fileClaims) do
+            table.insert(keys, k)
+        end
+        frame.getImageNames(keys)
+    end
     if not listTarget then
         return formData
     end
@@ -273,6 +279,11 @@ end
 ---@param item Item
 ---@param newData table
 local function applyFormChanges(item, newData)
+    if utils.typeof(item) == "unused" then
+        if newData.file then
+            fileClaims[unused.processFileName(newData.file)] = 0
+        end
+    end
     for k, v in pairs(newData) do
         item[k] = v
     end
@@ -439,6 +450,7 @@ local function changeItemUsed(interactionData)
     local itm = table.remove(parent, index)
     table.insert(items, itm)
     moveIndex(listElement.children, listIndex, insertionIndex)
+    listItem.used = not used
     listElement:reflow()
     listItem:onClick(0, 0, 1)
 end
@@ -510,22 +522,25 @@ local function addNewItem(interactionData, formFields)
     local used = listTarget.used
     local method = interactionData.addNewMethod.method
     local correctUsedValue = interactionData.addNewMethod.correctUsedValue
-
+    local shouldBeUsed = true
     if method == "basedOnCurrent" then
         if currentItem then
             newItem = table.shallowcopy(currentItem)
 
             applyFormChanges(newItem, form.getFormData(formFields))
         end
+        shouldBeUsed = used
     elseif method == "layer" then
         newItem = createLayer()
     elseif method == "frame" then
         newItem = createFrame()
     elseif method == "unused" then
         newItem = createUnused(interactionData.addNewMethod.name or "")
+        shouldBeUsed = false
     elseif method == "ui" then
         newItem = createUi()
     end
+    correctUsedValue = (shouldBeUsed == used)
     if newItem then
         local items, parrentTable, index = findItemInMetadata(interactionData)
         local _, listIndex = findCurrentListItem(interactionData)
@@ -555,7 +570,6 @@ local function addNewItem(interactionData, formFields)
             end
         end
     end
-    logging.info("Current list elements: " .. #interactionData.itemListElement.children)
     return not not newItem
 end
 ---Remove the selected item now
@@ -618,6 +632,43 @@ local function updateItem(interactionData, item, newData)
     local listItem = listElement and listElement.selected
 
     applyFormChanges(item, newData)
+    if utils.typeof(item) == "frame" then
+        local oldtexture = item.texture
+        local newtexture = newData.texture
+        local oldUsed = fileClaims[oldtexture .. ".png"] > 0
+        local newUsed = fileClaims[newtexture .. ".png"] and fileClaims[newtexture .. ".png"] > 0
+        if oldtexture then
+            fileClaims[oldtexture .. ".png"] -= 1
+        end
+        if newtexture then
+            fileClaims[newtexture .. ".png"] = (fileClaims[newtexture .. ".png"] + 1) or 1
+        end
+        local postNewUsed = fileClaims[newtexture .. ".png"] and fileClaims[newtexture .. ".png"] > 0
+        if oldUsed and fileClaims[oldtexture .. ".png"] == 0 then
+            local fakeInteractionData = table.shallowcopy(interactionData)
+            fakeInteractionData.addNewMethod = {
+                method = "unused",
+                correctUsedValue = false,
+                name = oldtexture .. ".png"
+            }
+            addNewItem(fakeInteractionData, metadataScreenWindow.getMetadataFrom(interactionData))
+        end
+        if postNewUsed and not newUsed then
+            local fakeInteractionData = table.shallowcopy(interactionData)
+            local items = interactionData.items
+            local item
+            for thing in items do
+                if unused.filename(thing) == newtexture .. ".png" then
+                    item = thing
+                    break
+                end
+            end
+            if item then
+                fakeInteractionData.listTarget = item
+                removeItem(fakeInteractionData)
+            end
+        end
+    end
     updateListItemText(listItem, item)
 end
 ---Get the dropdown options for the current item
@@ -886,10 +937,17 @@ function metadataScreenWindow.getWindowContent(map)
     return layout, interactionData
 end
 
-function metadataScreenWindow.editMetadataScreen(map, title)
-    frame.getImgageNames()
-    if not map then return end
-
+---Get a window with the specified title and inputs
+---@param inputs {files: string[],map: Item[]}
+---@param title any
+---@return unknown?
+function metadataScreenWindow.editMetadataScreen(inputs, title)
+    if not (inputs and inputs.map) then return end
+    local map = inputs.map
+    fileClaims = {}
+    for file in ipairs(inputs.files) do
+        fileClaims[file] = 0
+    end
     local window
     local layout, interactionData = metadataScreenWindow.getWindowContent(map)
     window = uiElements.window(title, layout):with({
