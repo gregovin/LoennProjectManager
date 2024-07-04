@@ -23,17 +23,10 @@ local fieldInformation = {
 }
 ---Get a list of all image names
 ---@return string[]
-function frame.getImgageNames()
-    if not projectLoader.cacheValid then error("Invalid Cache! Cannot load atlasses") end
-    local atlas = metadataHandler.getNestedValue({ "CompleteScreen", "Atlas" })
-    local details = pUtils.getProjectDetails()
-    local target = fileSystem.joinpath(modsDir, details.name, "Graphics", "Atlases", atlas)
+function frame.getImageNames(files)
     local res = {}
-    if not fileSystem.isDirectory(target) then return res end
-    for i, v in ipairs(pUtils.list_dir(target)) do
-        if fileSystem.fileExtension(v) == ".png" and pUtils.isPng(fileSystem.joinpath(target, v)) then
-            table.insert(res, fileSystem.stripExtension(v))
-        end
+    for i, v in ipairs(files) do
+        table.insert(res, { fileSystem.filename(fileSystem.stripExtension(v or "") or "") or "", v })
     end
     fieldInformation.texture.options = res
     return res

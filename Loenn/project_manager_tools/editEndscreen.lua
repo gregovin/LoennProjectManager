@@ -13,7 +13,7 @@ function script.run()
     if not projectLoader.cacheValid then
         projectLoader.loadMetadataDetails(pUtils.getProjectDetails())
     end
-    metadataScreenWindow.editMetadataScreen({}, "Endscreen Window")
+    metadataScreenWindow.editMetadataScreen({ map = {}, files = {} }, "Endscreen Window")
 end
 
 return script

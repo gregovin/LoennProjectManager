@@ -35,4 +35,8 @@ function unused.defaultData(item)
     return defaultData
 end
 
+function unused.processFileName(f)
+    return fileSystem.filename(f) or ""
+end
+
 return unused
