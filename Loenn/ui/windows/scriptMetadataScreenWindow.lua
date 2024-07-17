@@ -592,16 +592,6 @@ local function removeItem(interactionData)
             end
             table.remove(parent, index)
             listElement:removeChild(listElement.children[index])
-            if (not fileClaims[fileName]) or fileClaims[fileName] == 0 then
-                local lt = interactionData.listTarget
-                local used = lt.used
-                fakeInteractionData.addNewMethod = {
-                    method = "unused",
-                    correctUsedValue = used ~= false,
-                    name = fileName
-                }
-                addNewItem(fakeInteractionData, metadataScreenWindow.getMetadataFrom(interactionData))
-            end
         end
         if #listElement.children > 0 then
             setSelectionWithCallback(listElement, listIndex)
@@ -635,38 +625,11 @@ local function updateItem(interactionData, item, newData)
     if utils.typeof(item) == "frame" then
         local oldtexture = item.texture
         local newtexture = newData.texture
-        local oldUsed = fileClaims[oldtexture .. ".png"] > 0
-        local newUsed = fileClaims[newtexture .. ".png"] and fileClaims[newtexture .. ".png"] > 0
         if oldtexture then
             fileClaims[oldtexture .. ".png"] -= 1
         end
         if newtexture then
             fileClaims[newtexture .. ".png"] = (fileClaims[newtexture .. ".png"] + 1) or 1
-        end
-        local postNewUsed = fileClaims[newtexture .. ".png"] and fileClaims[newtexture .. ".png"] > 0
-        if oldUsed and fileClaims[oldtexture .. ".png"] == 0 then
-            local fakeInteractionData = table.shallowcopy(interactionData)
-            fakeInteractionData.addNewMethod = {
-                method = "unused",
-                correctUsedValue = false,
-                name = oldtexture .. ".png"
-            }
-            addNewItem(fakeInteractionData, metadataScreenWindow.getMetadataFrom(interactionData))
-        end
-        if postNewUsed and not newUsed then
-            local fakeInteractionData = table.shallowcopy(interactionData)
-            local items = interactionData.items
-            local item
-            for thing in items do
-                if unused.filename(thing) == newtexture .. ".png" then
-                    item = thing
-                    break
-                end
-            end
-            if item then
-                fakeInteractionData.listTarget = item
-                removeItem(fakeInteractionData)
-            end
         end
     end
     updateListItemText(listItem, item)
