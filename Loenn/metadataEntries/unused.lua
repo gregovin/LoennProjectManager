@@ -28,6 +28,7 @@ function unused.fieldOrder(item)
 end
 
 function unused.fieldInformation(item)
+    fieldInformation.file.enabled = item.claimed
     return fieldInformation
 end
 

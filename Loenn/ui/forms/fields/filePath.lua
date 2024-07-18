@@ -58,12 +58,19 @@ function directFilepathField.getElement(name, value, options)
     local maxWidth = options.maxWidth or options.width or 160
 
     local label = uiElements.label(options.displayName or name)
-    local button = uiElements.button("",
-        buttonPressed(formField, options.extension or "bin", options.location, options.requireDir)):with({
-        minWidth = minWidth,
-        maxWidth = maxWidth
-    })
-
+    local button
+    if options.enabled == false then
+        button = uiElements.button("", function() end):with({
+            minWidth = minWidth,
+            maxWidth = maxWidth
+        })
+    else
+        button = uiElements.button("",
+            buttonPressed(formField, options.extension or "bin", options.location, options.requireDir)):with({
+            minWidth = minWidth,
+            maxWidth = maxWidth
+        })
+    end
     if value ~= "" then
         updateButtonLabel(button, value)
     end

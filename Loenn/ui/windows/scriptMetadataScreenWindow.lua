@@ -137,6 +137,9 @@ local function getOptions(item)
         namePath = { "attribute" },
         tooltipPath = { "description" },
     }
+    if utils.typeof(item) == "unused" then
+        item.claimed = (fileClaims[unused.filename(item)] > 0)
+    end
     local dummyData, fieldInformation, fieldOrder = formUtils.prepareFormData(handler, item, prepareOptions, { item })
     local options = {
         fields = fieldInformation,
@@ -237,13 +240,6 @@ end
 local function prepareFormData(interactionData)
     local listTarget = interactionData.listTarget
     local formData = {}
-    if utils.typeof(listTarget.entry) == "frame" then
-        local keys = {}
-        for k, _ in pairs(fileClaims) do
-            table.insert(keys, k)
-        end
-        frame.getImageNames(keys)
-    end
     if not listTarget then
         return formData
     end
@@ -281,8 +277,11 @@ end
 ---@param newData table
 local function applyFormChanges(item, newData)
     if utils.typeof(item) == "unused" then
-        if newData.file then
-            fileClaims[unused.processFileName(newData.file)] = 0
+        if unused.filename(newData) then
+            fileClaims[unused.filename(newData)] = 0
+        end
+        if unused.filename(item) then
+            fileClaims[unused.filename(item)] = nil
         end
     end
     for k, v in pairs(newData) do
@@ -588,7 +587,6 @@ local function removeItem(interactionData)
         end
         table.remove(parent, index)
         listItem:removeSelf()
-        local fakeInteractionData = table.shallowcopy(interactionData)
         while utils.typeof(parent[index]) == "frame" do
             local fileName = frame.fileName(parent[index])
             if fileName then
@@ -598,6 +596,7 @@ local function removeItem(interactionData)
             table.remove(parent, index)
             listElement:removeChild(listElement.children[index])
         end
+        frame.getImageNames(fileClaims)
         if #listElement.children > 0 then
             setSelectionWithCallback(listElement, listIndex)
         else
@@ -628,7 +627,7 @@ local function updateItem(interactionData, item, newData)
 
     applyFormChanges(item, newData)
     if utils.typeof(item) == "frame" then
-        local oldtexture = item.texture
+        local oldtexture = frame.fileName(item)
         local newtexture = newData.texture
         if oldtexture then
             fileClaims[oldtexture .. ".png"] -= 1

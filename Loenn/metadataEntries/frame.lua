@@ -22,11 +22,12 @@ local fieldInformation = {
     }
 }
 ---Get a list of all image names
+---@param files {[string]: boolean}
 ---@return string[]
 function frame.getImageNames(files)
     local res = {}
-    for i, v in ipairs(files) do
-        table.insert(res, { fileSystem.filename(fileSystem.stripExtension(v or "") or "") or "", v })
+    for k, v in pairs(files) do
+        table.insert(res, { fileSystem.filename(fileSystem.stripExtension(k or "") or "") or "", k })
     end
     fieldInformation.texture.options = res
     return res
