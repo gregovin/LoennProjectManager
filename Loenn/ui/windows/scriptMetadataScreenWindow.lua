@@ -18,6 +18,7 @@ local form = require("ui.forms.form")
 local atlases = require("atlases")
 local logging = require("logging")
 local utils = require("utils")
+local notifications = require("ui.notification")
 
 local windowPersisterName = "metadata_screen_window"
 
@@ -582,6 +583,7 @@ local function removeItem(interactionData)
         local listItem, listIndex = findCurrentListItem(interactionData)
         if not listItem or not listIndex then error("oops") end
         if utils.typeof(parent[index]) == "unused" and fileClaims[unused.filename(parent[index])] == 0 then
+            notifications.notify("Cannot delete file, it is currently used by at least one frame")
             return nil
         end
         table.remove(parent, index)
