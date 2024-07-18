@@ -581,6 +581,9 @@ local function removeItem(interactionData)
         local listElement = interactionData.itemListElement
         local listItem, listIndex = findCurrentListItem(interactionData)
         if not listItem or not listIndex then error("oops") end
+        if utils.typeof(parent[index]) == "unused" and fileClaims[unused.filename(parent[index])] == 0 then
+            return nil
+        end
         table.remove(parent, index)
         listItem:removeSelf()
         local fakeInteractionData = table.shallowcopy(interactionData)
