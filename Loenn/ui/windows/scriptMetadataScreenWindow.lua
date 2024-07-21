@@ -23,7 +23,6 @@ local notifications = require("ui.notification")
 local windowPersisterName = "metadata_screen_window"
 
 local metadataScreenWindow = {}
-local frameOptions = {}
 local metadataWindowGroup
 -- TODO - Layouting variables that should be more dyanmic
 local PREVIEW_MAX_WIDTH = 320 * 3
@@ -138,16 +137,15 @@ local function getOptions(item)
         tooltipPath = { "description" },
     }
     if utils.typeof(item) == "unused" then
-        item.claimed = (fileClaims[unused.filename(item)] > 0)
+        item.claimed = (fileClaims[unused.filename(item)] and fileClaims[unused.filename(item)] > 0)
+    elseif utils.typeof(item) == "frame" then
+        frame.getImageNames(fileClaims)
     end
     local dummyData, fieldInformation, fieldOrder = formUtils.prepareFormData(handler, item, prepareOptions, { item })
     local options = {
         fields = fieldInformation,
         fieldOrder = fieldOrder
     }
-    if utils.typeof(item) == "frame" then
-        options.fields.texture.options = frameOptions
-    end
     return options, dummyData
 end
 ---@class ListTarget
@@ -630,7 +628,8 @@ local function updateItem(interactionData, item, newData)
         local oldtexture = frame.fileName(item)
         local newtexture = newData.texture
         if oldtexture then
-            fileClaims[oldtexture .. ".png"] -= 1
+            fileClaims[oldtexture .. ".png"] = fileClaims[oldtexture .. ".png"] and fileClaims[oldtexture .. ".png"] - 1 or
+            0
         end
         if newtexture then
             fileClaims[newtexture .. ".png"] = (fileClaims[newtexture .. ".png"] + 1) or 1
