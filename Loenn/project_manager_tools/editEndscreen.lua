@@ -1,5 +1,5 @@
 local mods = require("mods")
-local metadataScreenWindow = mods.requireFromPlugin("ui.windows.scriptMetadataScreenWindow")
+local metadataScreenWindow = mods.requireFromPlugin("ui.windows.metadataScreenWindow")
 local projectLoader = mods.requireFromPlugin("libraries.projectLoader")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 
