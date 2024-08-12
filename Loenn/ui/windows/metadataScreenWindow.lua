@@ -629,7 +629,7 @@ local function updateItem(interactionData, item, newData)
         local newtexture = newData.texture
         if oldtexture then
             fileClaims[oldtexture .. ".png"] = fileClaims[oldtexture .. ".png"] and fileClaims[oldtexture .. ".png"] - 1 or
-            0
+                0
         end
         if newtexture then
             fileClaims[newtexture .. ".png"] = (fileClaims[newtexture .. ".png"] + 1) or 1
@@ -921,7 +921,7 @@ function metadataScreenWindow.editMetadataScreen(inputs, title)
     })
     local windowCloseCallback = windowPersister.getWindowCloseCallback(windowPersisterName)
     windowPersister.trackWindow(windowPersisterName, window)
-    require("ui.windows").windows["scriptMetadataScreenWindow"].parent:addChild(window)
+    require("ui.windows").windows["metadataScreenWindow"].parent:addChild(window)
     widgetUtils.addWindowCloseButton(window, windowCloseCallback)
     return window
 end
