@@ -5,7 +5,8 @@ local v = require("utils.version_parser")
 local meta = require("meta")
 
 local importers = {}
-local supportedLonnVersion = v("0.8.0")
+local maxLonnVersion = v("0.10.0")
+local minLoennVersion = v("0.9.0")
 local currentLonnVersion = meta.version
 
 local function safeAddImporter(modname)
@@ -13,7 +14,7 @@ local function safeAddImporter(modname)
         mods.requireFromPlugin("project_manager_tools." .. modname))
 end
 logging.info("[Loenn Project Manager] Loading Project Management tools")
-if supportedLonnVersion >= currentLonnVersion then
+if maxLonnVersion > currentLonnVersion and currentLonnVersion >= minLoennVersion then
     safeAddImporter("manageCampaigns")
     safeAddImporter("manageMaps")
     safeAddImporter("newEmptyProject")
