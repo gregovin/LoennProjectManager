@@ -8,6 +8,18 @@ local script = {
     displayName = "Edit Endscreen",
     layer = "metadata",
     tooltip = "Modify the endscreen",
+    parameters = {
+        images = { "" }
+    },
+    tooltips = {
+        images = "The image(s) which will make up your endscreen"
+    },
+    fieldInformation = {
+        images = {
+            fieldType = "loennProjectManager.filePathList",
+            extension = "png",
+        }
+    }
 }
 function script.run()
     if not projectLoader.cacheValid then
