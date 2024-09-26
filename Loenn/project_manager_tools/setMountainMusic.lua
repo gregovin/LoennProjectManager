@@ -31,14 +31,12 @@ local script = {
     },
     fieldInformation = {
         backgroundMusic = {
-            fieldType = "string",
-            validator = musicValidator,
+            fieldType = "loennProjectManager.musicKey",
             options = songs,
             editable = true,
         },
         backgroundAmbience = {
-            fieldType = "string",
-            validator = musicValidator,
+            fieldType = "loennProjectManager.musicKey",
             options = songs,
             editable = true,
         },

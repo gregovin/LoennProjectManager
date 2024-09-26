@@ -34,6 +34,7 @@ if maxLonnVersion > currentLonnVersion and currentLonnVersion >= minLoennVersion
     safeAddImporter("setMountainTextures")
     safeAddImporter("setMountainMusic")
     safeAddImporter("editEndscreen")
+    safeAddImporter("addSimpleEndscreen")
 else
     safeAddImporter("versionNotif")
 end
