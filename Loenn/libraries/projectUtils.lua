@@ -8,6 +8,11 @@ local modsDir = fileSystem.joinpath(fileLocations.getCelesteDir(), "Mods")
 
 
 local pUtils = {}
+
+function pUtils.passIfFile(path)
+    if fileSystem.isFile(path) then return path end
+end
+
 ---Lists all entries in a dir excluding the backreferences
 ---@param path string the absolute path to the directory to list
 ---@return string[] list
