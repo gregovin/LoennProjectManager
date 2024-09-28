@@ -203,6 +203,30 @@ function metadataHandler.clearMetadata()
     metadataHandler.loadedData = {}
 end
 
+local sideMap = {
+    A = 1,
+    B = 2,
+    H = 2,
+    C = 3,
+    X = 3,
+}
+---Determine which side this map is, and the name and order
+---@param mapname string
+---@return integer side
+---@return string order
+---@return string name
+local function getSideInfo(mapname)
+    local order, side, name = string.match(mapname, "^(%d*)([ABCHX])%-(.-)$")
+    if not side then
+        order, name, side = string.match(mapname, "^(%d*)(.-)-([ABCHX])$")
+    end
+    if not side then
+        order, name = string.match(mapname, "^(%d*)(.*)")
+        side = "A"
+    end
+    return sideMap[side], order, name
+end
+
 ---Reads the yaml at path, erroring when there is an error
 ---@param path string
 ---@return number|table|unknown data
@@ -214,38 +238,45 @@ end
 ---@param projectDetails table the project details of the project to get the metadata for
 function metadataHandler.readMetadata(projectDetails)
     --get meta.yaml location
+    local side, order, name = getSideInfo(projectDetails.map)
+    metadataHandler.side = side
+    local checkTargets = { order .. name, order .. "A-" .. name, order .. name .. "-A" } --list potential A-side meta.yaml names
     local fLocal = fileSystem.joinpath(modsDir, projectDetails.name, "Maps", projectDetails.username,
         projectDetails.campaign)
-    local location = fileSystem.joinpath(fLocal, projectDetails.map .. ".meta.yaml")
-    if fileSystem.isFile(location) then
-        --if there is already a .meta.yaml, then read its data
-        logging.info("[Loenn Project Manager] Reading meta.yaml at " .. location)
-        local success, data = pcall(tryReadData, location)
-        if not success then
-            --if we fail, log and notify
-            logging.warning("[Loenn Project Manager] Failed to read " .. location ..
-                " due to the following error:\n" .. data)
-            notifications.notify("Failed to read " .. location)
+
+    local location
+    for _, target in ipairs(checkTargets) do
+        location = fileSystem.joinpath(fLocal, target .. ".meta.yaml")
+        if fileSystem.isFile(location) then
+            --if there is already a .meta.yaml, then read its data
+            logging.info("[Loenn Project Manager] Reading meta.yaml at " .. location)
+            local success, data = pcall(tryReadData, location)
+            if not success then
+                --if we fail, log and notify
+                logging.warning("[Loenn Project Manager] Failed to read " .. location ..
+                    " due to the following error:\n" .. data)
+                notifications.notify("Failed to read " .. location)
+                return
+            end
+            if type(data) == "table" then
+                --if we succeded and got the right data, set the internal values
+                metadataHandler.loadedFile = location
+                metadataHandler.loadedData = data
+            else
+                --otherwise log and notify
+                logging.warning("Bad return from yaml read, recieved a value of type " .. type(data))
+                notifications.notify("Failed to read " .. location)
+            end
             return
         end
-        if type(data) == "table" then
-            --if we succeded and got the right data, set the internal values
-            metadataHandler.loadedFile = location
-            metadataHandler.loadedData = data
-        else
-            --otherwise log and notify
-            logging.warning("Bad return from yaml read, recieved a value of type " .. type(data))
-            notifications.notify("Failed to read " .. location)
-        end
+    end
+    if fileSystem.isDirectory(fLocal) then
+        --if the folder exists then we can write to the location with no problems
+        metadataHandler.loadedFile = location
+        metadataHandler.loadedData = {}
     else
-        if fileSystem.isDirectory(fLocal) then
-            --if the folder exists then we can write to the location with no problems
-            metadataHandler.loadedFile = location
-            metadataHandler.loadedData = {}
-        else
-            --otherwise there cannot be a map this metadata is for so we have a problem
-            error("Bad project details! Map directory " .. fLocal .. " does not exist")
-        end
+        --otherwise there cannot be a map this metadata is for so we have a problem
+        error("Bad project details! Map directory " .. fLocal .. " does not exist")
     end
 end
 

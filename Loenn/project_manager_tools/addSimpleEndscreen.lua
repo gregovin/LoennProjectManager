@@ -67,6 +67,7 @@ local script = {
     }
 }
 local warnfolder = false
+local sideNames = { "ASide", "BSide", "CSide" }
 function script.prerun()
     local projectDetails = pUtils.getProjectDetails()
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
@@ -102,9 +103,9 @@ function script.prerun()
         script.parameters.scale = ldata["Scale"] or 1
         script.parameters.alpha = ldata["Alpha"] or 1
         script.parameters.music = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "MusicBySide" })
-            [1] --need to figure out how to handle b/c side data
-        script.parameters.title = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Title", "ASide" })
-        --and again here
+            [metadataHandler.side]
+        script.parameters.title = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Title", sideNames
+            [metadataHandler.side] })
     elseif not projectDetails.name then
         error("Cannot find tilesets because no project is selected!", 2)
     elseif not projectDetails.username then
@@ -114,6 +115,10 @@ function script.prerun()
     else
         error("Cannot find tilesets because no map is selected!", 2)
     end
+end
+
+function script.run(args)
+
 end
 
 return script
