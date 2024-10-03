@@ -204,12 +204,20 @@ function script.run(args)
         metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "MusicBySide",
             metadataHandler.side }, args.music)
     end
+    local tset = nil
+    local fset = nil
     if args.tile ~= "" then
         if args.title ~= "defualt" then
-            metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", sideNames
-                [metadataHandler.side] }, args.title)
+            tset = args.title
+            fset = args.title .. "_FULLCLEAR"
         end
         metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 2 }, { Type = "ui" })
+    end
+    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", sideNames
+        [metadataHandler.side] }, tset)
+    if metadataHandler.side == 1 then
+        metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", sideNames
+            [metadataHandler.side] }, fset)
     end
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 1, "Scale" }, args.scale)
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 1, "Alpha" }, args.alpha)
