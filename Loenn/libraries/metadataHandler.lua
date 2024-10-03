@@ -339,6 +339,24 @@ metadataHandler.defaults = {
         ["BackgroundAmbience"] = "",
         ["BackgroundMusicParams"] = {},
         ["BackgroundAmbienceParams"] = {}
+    },
+    ["CompleteScreen"] = {
+        ["Atlas"] = "",
+        ["Start"] = { 0.0, 0.0 },
+        ["Center"] = { 0.0, 0.0 },
+        ["Offset"] = { 0.0, 0.0 },
+        ["Title"] = {
+            ["ASide"] = "AREACOMPLETE_NORMAL",
+            ["BSide"] = "AREACOMPLETE_BSIDE",
+            ["CSide"] = "AREACOMPLETE_CSIDE",
+            ["FullClear"] = "AREACOMPLETE_NORMAL_FULLCLEAR"
+        },
+        ["MusicBySide"] = {
+            "event:/music/menu/complete_area",
+            "event:/music/menu/complete_bside",
+            "event:/music/menu/complete_bside"
+        },
+        ["Layers"] = {}
     }
 }
 ---Returns a list in "[a,b,...]"" form
@@ -362,6 +380,25 @@ metadataHandler.transformers = {
         ["Zoom"] = {
             ["Position"] = { transform = briefList },
             ["Target"] = { transform = briefList }
+        }
+    },
+    ["CompleteScreen"] = {
+        ["Start"] = { transform = briefList },
+        ["Center"] = { transform = briefList },
+        ["Offset"] = { transform = briefList },
+        ["MusicBySide"] = {
+            transform = function(v)
+                local m = 0
+                for k, _ in pairs(v) do
+                    if k > m then
+                        m = k
+                    end
+                end
+                for k = 1, m do
+                    v[k] = v[k] or metadataHandler.defaults["CompleteScreen"]["MusicBySide"][k]
+                end
+                return v
+            end
         }
     }
 }
