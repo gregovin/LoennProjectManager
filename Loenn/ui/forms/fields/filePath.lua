@@ -38,15 +38,15 @@ local function createSelectFileCallback(self, button)
     end
 end
 
-local function buttonPressed(self, extension, location, requireDir)
-    location = location or fileLocations.getCelesteDir()
-    if requireDir then
+local function buttonPressed(self, options)
+    local location = (self.currentValue and filesystem.dirname(self.currentValue)) or options.location
+    if options.requireDir then
         return function(button)
             filesystem.openFolderDialog(location, createSelectFileCallback(self, button))
         end
     else
         return function(button)
-            filesystem.openDialog(location, extension, createSelectFileCallback(self, button))
+            filesystem.openDialog(location, options.extension, createSelectFileCallback(self, button))
         end
     end
 end
@@ -56,7 +56,10 @@ function directFilepathField.getElement(name, value, options)
 
     local minWidth = options.minWidth or options.width or 160
     local maxWidth = options.maxWidth or options.width or 160
-
+    options.extension = options.extension or "bin"
+    formField.initialValue = value
+    formField.currentValue = value
+    options.location = options.location or fileLocations.getCelesteDir()
     local label = uiElements.label(options.displayName or name)
     local button
     if options.enabled == false then
@@ -66,7 +69,7 @@ function directFilepathField.getElement(name, value, options)
         })
     else
         button = uiElements.button("",
-            buttonPressed(formField, options.extension or "bin", options.location, options.requireDir)):with({
+            buttonPressed(formField, options)):with({
             minWidth = minWidth,
             maxWidth = maxWidth
         })
@@ -85,8 +88,6 @@ function directFilepathField.getElement(name, value, options)
     formField.label = label
     formField.button = button
     formField.name = name
-    formField.initialValue = value
-    formField.currentValue = value
     formField.width = 2
     formField.elements = {
         label, button
