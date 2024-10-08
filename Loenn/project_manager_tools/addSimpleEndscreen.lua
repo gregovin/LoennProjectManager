@@ -81,6 +81,7 @@ function script.prerun()
             projectLoader.loadMetadataDetails(projectDetails)
         end
         atlas = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Atlas" })
+        atlas = atlas or fileSystem.joinpath("Endscreens", projectDetails.username, projectDetails.campaign)
         local l = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Layers" })
         local img
         local ldata = {}
@@ -88,7 +89,7 @@ function script.prerun()
             if layer["Type"] == "layer" then
                 if img or #layer["Images"] > 1 then
                     notifications.notify("Current endscreen is not simple and cannot be modified with this tool")
-                    return
+                    return false
                 else
                     img = layer["Images"][1]
                     ldata = layer
@@ -97,7 +98,7 @@ function script.prerun()
         end
         if img then
             script.parameters.image = pUtils.passIfFile(fileSystem.joinpath(modsDir, projectDetails.name, "Graphics",
-                "Atlases", atlas, img)) or ""
+                "Atlases", atlas, img .. ".png")) or ""
         else
             script.parameters.image = ""
         end
@@ -156,7 +157,7 @@ function script.run(args)
         notifications.notify("Previous and new image are both blank, cannot update")
         return
     end
-    if args.image ~= "" then --if we have a new image set functions to copy/uncopy it
+    if args.image ~= "" and args.image ~= oldImg then --if we have a new image set functions to copy/uncopy it
         copyImg = function()
             local success, message = fileSystem.copy(args.image, fileTarget)
             if not success then
@@ -173,7 +174,7 @@ function script.run(args)
             return success, "Failed to delete file"
         end
     end
-    if oldImg ~= "" then --if there is an old image make functions to delete it
+    if oldImg ~= "" and args.image ~= oldImg then --if there is an old image make functions to delete it
         delOld = function()
             delLocal, error = safeDelete.revdelete(oldImg)
             if error then
@@ -192,7 +193,7 @@ function script.run(args)
         end
     end
     local dataBefore = utils.deepcopy(metadataHandler.loadedData)
-    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Atlas" }, atlas)
+    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Atlas" }, string.gsub(atlas, "\\", "/"))
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Start" }, args.start)
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Center" }, args.center)
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers" },
@@ -216,8 +217,7 @@ function script.run(args)
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", sideNames
         [metadataHandler.side] }, tset)
     if metadataHandler.side == 1 then
-        metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", sideNames
-            [metadataHandler.side] }, fset)
+        metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", "FullClear" }, fset)
     end
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 1, "Scale" }, args.scale)
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 1, "Alpha" }, args.alpha)

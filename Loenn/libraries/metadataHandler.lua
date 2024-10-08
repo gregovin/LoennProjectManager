@@ -341,7 +341,6 @@ metadataHandler.defaults = {
         ["BackgroundAmbienceParams"] = {}
     },
     ["CompleteScreen"] = {
-        ["Atlas"] = "",
         ["Start"] = { 0.0, 0.0 },
         ["Center"] = { 0.0, 0.0 },
         ["Offset"] = { 0.0, 0.0 },
