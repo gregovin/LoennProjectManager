@@ -40,7 +40,7 @@ handler.bgXml = nil
 handler.tpath = nil
 ---@type string[]
 local ids_used={"\"","&","'","<",">"} -- these are probably all a bad idea to use
----@tpye integer
+---@type integer
 local curId=33 --ascii 33 is !
 --adds relevant special characters to ids_used on run
 local function addSpecialChars()
@@ -67,7 +67,8 @@ function handler.clearTilesetCache()
     settings.set("backgroundTilesXml",nil,"recentProjectInfo")
     settings.set("animatedTilesets",nil,"recentProjectInfo")
     handler.tpath =nil
-    ids_used={"\"","&","'","<",">"} 
+    ids_used={"\"","&","'","<",">"} --setup ids_used
+    curId = 33
 end
 ---get the tileset table relevant for the value of foreground
 ---@param foreground boolean weather or not to return the foreground table
@@ -212,6 +213,15 @@ function handler.processTilesetXml(xmlString,foreground,projectDetails)
         handler.bgTemplates = templates
     end
     table.sort(ids_used,function (a,b) return a>b end) --sort backwards so the smallest ids are at the end and can be popped quickly
+    local idx = 1
+    --remove any duplicates. There should not be duplicates
+    while idx < #ids_used do
+        if ids_used[idx] == ids_used[idx+1] then
+            table.remove(ids_used,idx)
+        else
+            idx +=1
+        end
+    end
 end
 
 local function generateTilesetId()
