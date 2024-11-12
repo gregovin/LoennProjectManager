@@ -40,13 +40,16 @@ handler.bgXml = nil
 ---@type string?
 handler.tpath = nil
 ---@type string[]
-local ids_used = { "\"", "&", "'", "<", ">" } -- these are probably all a bad idea to use
----@tpye integer
-local curId = 33                      --ascii 33 is !
+local ids_used_fg={"\"","&","'","<",">","0"} -- these are probably all a bad idea to use. id 0 is air, the rest are xml special chars
+local ids_used_bg={"\"","&","'","<",">","0"}
+---@type integer
+local curIdFg=33 --ascii 33 is !
+local curIdBg=33
 --adds relevant special characters to ids_used on run
-local function addSpecialChars()
-    for i = 0x7F, 0xA0 do --this range is control characters
-        table.insert(ids_used, utf8.char(i))
+local function addSpecialChars(foreground)
+    local ids_used = foreground and ids_used_fg or ids_used_bg
+    for i=0x7F,0xA0 do --this range is control characters
+        table.insert(ids_used,utf8.char(i))
     end
     table.insert(ids_used, utf8.char(173))
 end
@@ -64,11 +67,14 @@ function handler.clearTilesetCache()
     }
     handler.fgTemplates = {}
     handler.bgTemplates = {}
-    settings.set("foregroundTilesXml", nil, "recentProjectInfo")
-    settings.set("backgroundTilesXml", nil, "recentProjectInfo")
-    settings.set("animatedTilesets", nil, "recentProjectInfo")
-    handler.tpath = nil
-    ids_used = { "\"", "&", "'", "<", ">" }
+    settings.set("foregroundTilesXml",nil,"recentProjectInfo")
+    settings.set("backgroundTilesXml",nil,"recentProjectInfo")
+    settings.set("animatedTilesets",nil,"recentProjectInfo")
+    handler.tpath =nil
+    ids_used_fg={"\"","&","'","<",">","0"} --setup ids_used
+    ids_used_bg={"\"","&","'","<",">","0"}
+    curIdFg = 33
+    curIdBg=33
 end
 
 ---get the tileset table relevant for the value of foreground
@@ -116,9 +122,10 @@ end
 ---@param xmlString string the xmlString to process
 ---@param foreground boolean when true loads tilesets into the foreground table, otherwise the background table
 ---@param projectDetails table table of project details
-function handler.processTilesetXml(xmlString, foreground, projectDetails)
+function handler.processTilesetXml(xmlString,foreground,projectDetails)
+    local ids_used = foreground and ids_used_fg or ids_used_bg
     if #ids_used == 5 then
-        addSpecialChars()
+        addSpecialChars(foreground)
     end
     ---parse the xml!
     local xhandler = xmlHandler:new()
@@ -220,10 +227,21 @@ function handler.processTilesetXml(xmlString, foreground, projectDetails)
         handler.bgTilesets = tilesets
         handler.bgTemplates = templates
     end
-    table.sort(ids_used, function(a, b) return a > b end) --sort backwards so the smallest ids are at the end and can be popped quickly
+    table.sort(ids_used,function (a,b) return a>b end) --sort backwards so the smallest ids are at the end and can be popped quickly
+    local idx = 1
+    --remove any duplicates. There should not be duplicates
+    while idx < #ids_used do
+        if ids_used[idx] == ids_used[idx+1] then
+            table.remove(ids_used,idx)
+        else
+            idx +=1
+        end
+    end
 end
 
-local function generateTilesetId()
+local function generateTilesetId(foreground)
+    local ids_used = foreground and ids_used_fg or ids_used_bg
+    local curId = foreground and curIdFg or curIdBg
     local out = utf8.char(curId)
     while out == ids_used[#ids_used] do
         curId += 1
@@ -247,9 +265,10 @@ end
 ---@return boolean success true when the operation is a success, false otherwise
 ---@return string? message contains the error message if there was one
 ---@return string? humMessage contains the message to display to the user in event of error, if there is one
-function handler.addTileset(path, displayName, copy, sound, ignores, templateInfo, mask, foreground, xmlTarget)
-    local tileXml = (foreground and handler.fgXml) or handler.bgXml
-    local id = generateTilesetId()
+function handler.addTileset(path, displayName, copy, sound, ignores,templateInfo,mask,foreground,xmlTarget)
+    
+    local tileXml= (foreground and handler.fgXml) or handler.bgXml
+    local id = generateTilesetId(foreground)
     local newTileset = {
         _attr = {
             path = path,
@@ -397,8 +416,10 @@ end
 ---@return boolean success
 ---@return string? error
 ---@return string? humMessage
-function handler.removeTileset(name, foreground, xmlTarget)
-    local tileXml = (foreground and handler.fgXml) or handler.bgXml
+function handler.removeTileset(name, foreground,xmlTarget)
+    local ids_used = foreground and ids_used_fg or ids_used_bg
+    local curId = foreground and curIdFg or curIdBg
+    local tileXml= (foreground and handler.fgXml) or handler.bgXml
     local tilesets = foreground and handler.fgTilesets or handler.bgTilesets
     if tilesets[name].used and tilesets[name].used > 0 then
         local msg = string.format("Can't remove %s because it is being used as a template", name)
@@ -421,13 +442,13 @@ function handler.removeTileset(name, foreground, xmlTarget)
     tileXml.Data.Tileset = $(tileXml.Data.Tileset):filter(tXml -> tXml._attr.id ~= searchId)()
     ids_used = $(ids_used):filter(id-> id~=searchId)
     if searchId < utf8.char(curId) then
-        curId -= 1
+        curId=1
         local i = utf8.char(curId)
         while i > searchId do
-            table.insert(ids_used, i)
-            curId -= 1
+            table.insert(ids_used,i)
+            curId-=1
             --logging.info(string.format("cur id:",curId))
-            i = utf8.char(curId)
+            i=utf8.char(curId)
         end
     end
     local outstring = xmlWriter.toXml(tileXml)
