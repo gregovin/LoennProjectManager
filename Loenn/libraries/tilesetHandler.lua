@@ -402,6 +402,7 @@ end
 ---@return string? humMessage
 function handler.removeTileset(name, foreground,xmlTarget)
     local ids_used = foreground and ids_used_fg or ids_used_bg
+    local curId = foreground and curIdFg or curIdBg
     local tileXml= (foreground and handler.fgXml) or handler.bgXml
     local tilesets = foreground and handler.fgTilesets or handler.bgTilesets
     if tilesets[name].used and tilesets[name].used> 0 then
@@ -424,14 +425,14 @@ function handler.removeTileset(name, foreground,xmlTarget)
     tilesets[name]=nil
     tileXml.Data.Tileset = $(tileXml.Data.Tileset):filter(tXml -> tXml._attr.id ~= searchId)()
     ids_used = $(ids_used):filter(id-> id~=searchId)
-    if searchId < utf8.char(curIdFg) then
-        curIdFg-=1
-        local i = utf8.char(curIdFg)
+    if searchId < utf8.char(curId) then
+        curId-=1
+        local i = utf8.char(curId)
         while i > searchId do
             table.insert(ids_used,i)
-            curIdFg-=1
+            curId-=1
             --logging.info(string.format("cur id:",curId))
-            i=utf8.char(curIdFg)
+            i=utf8.char(curId)
         end
     end
     local outstring = xmlWriter.toXml(tileXml)
