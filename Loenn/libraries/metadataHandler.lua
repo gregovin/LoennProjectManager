@@ -342,7 +342,6 @@ metadataHandler.defaults = {
     },
     ["CompleteScreen"] = {
         ["Start"] = { 0.0, 0.0 },
-        ["Center"] = { 0.0, 0.0 },
         ["Offset"] = { 0.0, 0.0 },
         ["Title"] = {
             ["ASide"] = "AREACOMPLETE_NORMAL",
@@ -385,6 +384,12 @@ metadataHandler.transformers = {
         ["Start"] = { transform = briefList },
         ["Center"] = { transform = briefList },
         ["Offset"] = { transform = briefList },
+        ["Layers"] = {
+            ["*"] = {
+                ["Images"] = { transform = briefList },
+                ["Scroll"] = { transform = briefList }
+            }
+        },
         ["MusicBySide"] = {
             transform = function(v)
                 local m = 0
@@ -413,6 +418,12 @@ local function sanatizeData(data, transformers)
                 out[k] = transformers[k].transform(v)
             else
                 out[k] = sanatizeData(v, transformers[k])
+            end
+        elseif transformers["*"] then
+            if transformers["*"].transform then
+                out[k] = transformers["*"].transform(v)
+            else
+                out[k] = sanatizeData(v, transformers["*"])
             end
         else
             out[k] = v

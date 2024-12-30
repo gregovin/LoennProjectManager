@@ -11,28 +11,25 @@ local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 local safeDelete = mods.requireFromPlugin("libraries.safeDelete")
 local history = require("history")
 local utils = require("utils")
+local logging = require("logging")
 
 local oldImg
 local script = {
     name = "addSimpleEndscreen",
     displayName = "Add Simple Endscreen",
     layer = "metadata",
-    tooltip = "Add or edit an endscreen with one non-animated image",
+    tooltip = "Add or edit an endscreen with one non-animated image that will cover the whole screen",
     parameters = {
-        image  = "",
-        start  = { 0.0, 0.0 },
-        center = { 0.0, 0.0 },
-        scale  = 1.0,
-        alpha  = 1.0,
-        title  = "",
-        music  = "",
+        image = "",
+        alpha = 1.0,
+        scroll = { 0.0, 0.0 },
+        title = "",
+        music = "",
     },
     tooltips = {
         image = "the image to use for the endscreen",
-        start = "the position the image starts with",
-        center = "the final position of the image",
-        scale = "the scale of the image",
         alpha = "transparency of the image from 0 to 1",
+        scroll = "the amount of scrolling the image should do",
         title =
         "Dialog key for the title to use for the endscreen, leave blank for no title. Use \"default\" to get the default key",
         music = "Music event key for the endscreen, if you want to use non-default music"
@@ -42,20 +39,13 @@ local script = {
             fieldType = "loennProjectManager.filePath",
             extension = "png"
         },
-        start = {
-            fieldType = "loennProjectManager.position2d"
-        },
-        center = {
-            fieldType = "loennProjectManager.position2d"
-        },
-        scale = {
-            fieldType = "number",
-            minimumValue = 0.0,
-        },
         alpha = {
             fieldType = "number",
             minimumValue = 0.0,
             maximumValue = 1.0
+        },
+        scroll = {
+            fieldType = "loennProjectManager.position2d"
         },
         title = {
             fieldType = "string",
@@ -68,9 +58,11 @@ local script = {
         }
     },
     fieldOrder = {
-        "image", "start", "center", "music", "title", "alpha"
+        "image", "music", "title", "alpha", "scroll"
     },
 }
+local screenWidth = 1920
+local screenHeight = 1080
 local sideNames = { "ASide", "BSide", "CSide" }
 local atlas
 function script.prerun()
@@ -83,17 +75,15 @@ function script.prerun()
         atlas = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Atlas" })
         atlas = atlas or fileSystem.joinpath("Endscreens", projectDetails.username, projectDetails.campaign)
         local l = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Layers" })
-        local img
+        local img = nil
         local ldata = {}
         for i, layer in ipairs(l) do
             if layer["Type"] == "layer" then
                 if img or #layer["Images"] > 1 then
-                    notifications.notify("Current endscreen is not simple and cannot be modified with this tool")
-                    return false
-                else
-                    img = layer["Images"][1]
-                    ldata = layer
+                    error("Current endscreen is not simple and cannot be modified with this tool")
                 end
+                img = layer["Images"][1]
+                ldata = layer
             end
         end
         if img then
@@ -103,15 +93,12 @@ function script.prerun()
             script.parameters.image = ""
         end
         oldImg = script.parameters.image
-        local f = pUtils.list_dir(fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases", atlas))
-        script.parameters.start = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Start" })
-        script.parameters.center = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Center" })
-        script.parameters.scale = ldata["Scale"] or 1
         script.parameters.alpha = ldata["Alpha"] or 1
         script.parameters.music = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "MusicBySide",
             metadataHandler.side })
         script.parameters.title = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Title", sideNames
             [metadataHandler.side] })
+        script.parameters.scroll = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Start" })
     elseif not projectDetails.name then
         error("Cannot find tilesets because no project is selected!", 2)
     elseif not projectDetails.username then
@@ -126,6 +113,11 @@ end
 function script.run(args)
     local projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
+    if not pUtils.isPng(args.image) then
+        logging.warning(string.format("Cannot use " .. args.image .. " as an endscreen, it is not a png"))
+        notifications.notify("Selected image is not a real png")
+        return
+    end
     local delOld = function()
         return true
     end
@@ -194,12 +186,36 @@ function script.run(args)
     end
     local dataBefore = utils.deepcopy(metadataHandler.loadedData)
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Atlas" }, string.gsub(atlas, "\\", "/"))
-    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Start" }, args.start)
-    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Center" }, args.center)
+    --determine the correct scaling
+    -- see http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html for the png spec
+    -- A png starts with an 8 byte magic header(checked in pUtils.isPng)
+    -- Then a series of chunks
+    -- The first chunk has a known data format. Specifically, the first 24 bytes of a png are
+    -- HHHHHHHHFFFFFFFFWWWWHHHH
+    local scale = 1
+    local test, message = io.open(args.image, "rb")
+    if test then
+        local full_header = test:read(24)
+        test:close()
+        local w1, w2, w3, w4 = string.byte(full_header, 17, 20) --read the 4 byte integer width(note: big endian)
+        local normal_width = w4 + w3 * 256 + w2 * 65536 + w1 * 16777216
+        local h1, h2, h3, h4 = string.byte(full_header, 21, 24) --read the 4 byte integer height(note: big endian)
+        local normal_height = h4 + h3 * 256 + h2 * 65536 + h1 * 16777216
+        local wr = screenWidth / normal_width
+        local hr = screenHeight / normal_height
+        if wr < hr then
+            scale = wr
+        else
+            scale = hr
+        end
+    end
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers" },
         { {
             Type = "layer",
-            Images = string.format("[\"%s\"]", fileSystem.stripExtension(fileSystem.filename(args.image)))
+            Images = { fileSystem.stripExtension(fileSystem.filename(args.image)) },
+            Scale = scale,
+            Alpha = args.alpha,
+            Scroll = { 1.0, 1.0 }
         } })
     if args.music ~= "" then
         metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "MusicBySide",
@@ -219,9 +235,10 @@ function script.run(args)
     if metadataHandler.side == 1 then
         metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", "FullClear" }, fset)
     end
-    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 1, "Scale" }, args.scale)
-    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 1, "Alpha" }, args.alpha)
+    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Start" }, args.scroll)
+    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Center" }, { 0, 0 })
     local dataAfter = utils.deepcopy(metadataHandler.loadedData)
+    metadataHandler.update({})
     local redoMetadata = function()
         metadataHandler.loadedData = dataAfter
         local success, result = metadataHandler.update({})
