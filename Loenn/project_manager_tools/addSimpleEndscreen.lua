@@ -29,7 +29,8 @@ local script = {
     tooltips = {
         image = "the image to use for the endscreen",
         alpha = "transparency of the image from 0 to 1",
-        scroll = "the amount of scrolling the image should do",
+        scroll =
+        "the amount of scrolling the image should do in both directions. The cordinates here are where the image comes from",
         title =
         "Dialog key for the title to use for the endscreen, leave blank for no title. Use \"default\" to get the default key",
         music = "Music event key for the endscreen, if you want to use non-default music"
@@ -215,7 +216,7 @@ function script.run(args)
             Images = { fileSystem.stripExtension(fileSystem.filename(args.image)) },
             Scale = scale,
             Alpha = args.alpha,
-            Scroll = { 1.0, 1.0 }
+            Scroll = { -1.0, -1.0 }
         } })
     if args.music ~= "" then
         metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "MusicBySide",
