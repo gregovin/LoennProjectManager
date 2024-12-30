@@ -21,14 +21,12 @@ local script = {
     tooltip = "Add or edit an endscreen with one non-animated image that will cover the whole screen",
     parameters = {
         image = "",
-        alpha = 1.0,
         scroll = { 0.0, 0.0 },
         title = "",
         music = "",
     },
     tooltips = {
         image = "the image to use for the endscreen",
-        alpha = "transparency of the image from 0 to 1",
         scroll =
         "the amount of scrolling the image should do in both directions. The cordinates here are where the image comes from",
         title =
@@ -39,11 +37,6 @@ local script = {
         image = {
             fieldType = "loennProjectManager.filePath",
             extension = "png"
-        },
-        alpha = {
-            fieldType = "number",
-            minimumValue = 0.0,
-            maximumValue = 1.0
         },
         scroll = {
             fieldType = "loennProjectManager.position2d"
@@ -59,7 +52,7 @@ local script = {
         }
     },
     fieldOrder = {
-        "image", "music", "title", "alpha", "scroll"
+        "image", "music", "title", "scroll"
     },
 }
 local screenWidth = 1920
@@ -77,14 +70,16 @@ function script.prerun()
         atlas = atlas or fileSystem.joinpath("Endscreens", projectDetails.username, projectDetails.campaign)
         local l = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Layers" })
         local img = nil
-        local ldata = {}
+        local has_ui = false
         for i, layer in ipairs(l) do
             if layer["Type"] == "layer" then
                 if img or #layer["Images"] > 1 then
                     error("Current endscreen is not simple and cannot be modified with this tool")
                 end
                 img = layer["Images"][1]
-                ldata = layer
+            end
+            if layer["Type"] == "ui" then
+                has_ui = true
             end
         end
         if img then
@@ -94,11 +89,10 @@ function script.prerun()
             script.parameters.image = ""
         end
         oldImg = script.parameters.image
-        script.parameters.alpha = ldata["Alpha"] or 1
         script.parameters.music = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "MusicBySide",
             metadataHandler.side })
-        script.parameters.title = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Title", sideNames
-            [metadataHandler.side] })
+        script.parameters.title = metadataHandler.getNestedValue({ "CompleteScreen", "Title", sideNames
+            [metadataHandler.side] }) or (has_ui and "default") or ""
         script.parameters.scroll = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Start" })
     elseif not projectDetails.name then
         error("Cannot find tilesets because no project is selected!", 2)
@@ -215,27 +209,28 @@ function script.run(args)
             Type = "layer",
             Images = { fileSystem.stripExtension(fileSystem.filename(args.image)) },
             Scale = scale,
-            Alpha = args.alpha,
+            Alpha = 1.0,
             Scroll = { -1.0, -1.0 }
         } })
     if args.music ~= "" then
         metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "MusicBySide",
             metadataHandler.side }, args.music)
     end
-    local tset = nil
-    local fset = nil
-    if args.tile ~= "" then
-        if args.title ~= "defualt" then
+    if args.title ~= "" then
+        local tset = nil
+        local fset = nil
+        if args.title ~= "default" then
             tset = args.title
             fset = args.title .. "_FULLCLEAR"
         end
         metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 2 }, { Type = "ui" })
+        metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", sideNames
+            [metadataHandler.side] }, tset)
+        if metadataHandler.side == 1 then
+            metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", "FullClear" }, fset)
+        end
     end
-    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", sideNames
-        [metadataHandler.side] }, tset)
-    if metadataHandler.side == 1 then
-        metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", "FullClear" }, fset)
-    end
+
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Start" }, args.scroll)
     metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Center" }, { 0, 0 })
     local dataAfter = utils.deepcopy(metadataHandler.loadedData)
