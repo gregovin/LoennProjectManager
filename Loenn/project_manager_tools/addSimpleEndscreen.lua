@@ -11,7 +11,6 @@ local fallibleSnapshot = mods.requireFromPlugin("libraries.fallibleSnapshot")
 local safeDelete = mods.requireFromPlugin("libraries.safeDelete")
 local history = require("history")
 local utils = require("utils")
-local logging = require("logging")
 
 local oldImg
 local script = {
