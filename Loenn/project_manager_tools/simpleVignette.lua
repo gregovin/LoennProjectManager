@@ -24,10 +24,11 @@ local script = {
         music = "",
     },
     tooltips = {
-        image = "The image to use for the vignette screen. Note: images will be autoscalled to fit the screen.",
+        image =
+        "The image te for the vignette screen. Note: images will be autoscalled to fit the screen. If left blank, will use vignette text like prolouge instead",
         title =
-        "Dialog key for the title to use for the endscreen, leave blank for no title.",
-        music = "Music event key for the endscreen, if you want to use non-default music",
+        "Dialog key for the title to use for the vignette screen or text, leave blank for no title/no text.",
+        music = "Music event key for the vignette screen, if you want to use non-default music",
     },
     fieldInformation = {
         image = {
