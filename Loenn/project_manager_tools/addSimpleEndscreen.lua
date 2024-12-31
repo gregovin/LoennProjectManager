@@ -21,14 +21,11 @@ local script = {
     tooltip = "Add or edit an endscreen with one non-animated image that will cover the whole screen",
     parameters = {
         image = "",
-        scroll = { 0.0, 0.0 },
         title = "",
         music = "",
     },
     tooltips = {
-        image = "the image to use for the endscreen",
-        scroll =
-        "the amount of scrolling the image should do in both directions. The cordinates here are where the image comes from",
+        image = "The image to use for the endscreen. Note: images will be autoscalled to fit the screen.",
         title =
         "Dialog key for the title to use for the endscreen, leave blank for no title. Use \"default\" to get the default key",
         music = "Music event key for the endscreen, if you want to use non-default music"
@@ -37,9 +34,6 @@ local script = {
         image = {
             fieldType = "loennProjectManager.filePath",
             extension = "png"
-        },
-        scroll = {
-            fieldType = "loennProjectManager.position2d"
         },
         title = {
             fieldType = "string",
@@ -52,7 +46,7 @@ local script = {
         }
     },
     fieldOrder = {
-        "image", "music", "title", "scroll"
+        "image", "music", "title"
     },
 }
 local screenWidth = 1920
@@ -93,7 +87,6 @@ function script.prerun()
             metadataHandler.side })
         script.parameters.title = metadataHandler.getNestedValue({ "CompleteScreen", "Title", sideNames
             [metadataHandler.side] }) or (has_ui and "default") or ""
-        script.parameters.scroll = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Start" })
     elseif not projectDetails.name then
         error("Cannot find tilesets because no project is selected!", 2)
     elseif not projectDetails.username then
@@ -210,7 +203,6 @@ function script.run(args)
             Images = { fileSystem.stripExtension(fileSystem.filename(args.image)) },
             Scale = scale,
             Alpha = 1.0,
-            Scroll = { -1.0, -1.0 }
         } })
     if args.music ~= "" then
         metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "MusicBySide",
@@ -230,9 +222,6 @@ function script.run(args)
             metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", "FullClear" }, fset)
         end
     end
-
-    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Start" }, args.scroll)
-    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Center" }, { 0, 0 })
     local dataAfter = utils.deepcopy(metadataHandler.loadedData)
     metadataHandler.update({})
     local redoMetadata = function()
