@@ -129,12 +129,13 @@ function script.run(args)
         local success, message = fileSystem.mkpath(fileTarget)
         if not success then
             logging.warning(string.format("Encountered error attempting to create endscreen directory: \n%s", message))
+            notifications.notify("Could not create endscreens directory")
             return
         end
     end
     fileTarget = fileSystem.joinpath(fileTarget, fileSystem.filename(args.image))
     if args.image == oldImg and oldImg == "" then
-        notifications.notify("Previous and new image are both blank, cannot update")
+        notifications.notify("Previous and new image are both null, cannot update")
         return
     end
     if args.image ~= "" and args.image ~= oldImg then --if we have a new image set functions to copy/uncopy it
@@ -167,7 +168,8 @@ function script.run(args)
         unDelOld = function()
             local success, message = os.rename(delLocal, oldImg)
             if not success then
-                error(string.format("Could not recover tileset %s due to the following error:\n%s", args.tileset, message))
+                error(string.format("Could not recover endscreen %s due to the following error:\n%s", args.tileset,
+                    message))
             end
             return true
         end
