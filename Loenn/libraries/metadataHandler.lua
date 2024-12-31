@@ -355,6 +355,9 @@ metadataHandler.defaults = {
             "event:/music/menu/complete_bside"
         },
         ["Layers"] = {}
+    },
+    ["LoadingVignetteScreen"] = {
+        ["Layers"] = {}
     }
 }
 ---Returns a list in "[a,b,...]"" form
@@ -384,6 +387,28 @@ metadataHandler.transformers = {
         ["Start"] = { transform = briefList },
         ["Center"] = { transform = briefList },
         ["Offset"] = { transform = briefList },
+        ["Layers"] = {
+            ["*"] = {
+                ["Images"] = { transform = briefList },
+                ["Scroll"] = { transform = briefList }
+            }
+        },
+        ["MusicBySide"] = {
+            transform = function(v)
+                local m = 0
+                for k, _ in pairs(v) do
+                    if k > m then
+                        m = k
+                    end
+                end
+                for k = 1, m do
+                    v[k] = v[k] or metadataHandler.defaults["CompleteScreen"]["MusicBySide"][k]
+                end
+                return v
+            end
+        }
+    },
+    ["LoadingVignetteScreen"] = {
         ["Layers"] = {
             ["*"] = {
                 ["Images"] = { transform = briefList },

@@ -69,13 +69,13 @@ function script.prerun()
         script.parameters.starBeltColors1 = metadataHandler.getNestedValueOrDefault({ "Mountain", "StarBeltColors1" })
         script.parameters.starBeltColors2 = metadataHandler.getNestedValueOrDefault({ "Mountain", "StarBeltColors2" })
     elseif not projectDetails.name then
-        error("Cannot find tilesets because no project is selected!", 2)
+        error("Cannot find metadata because no project is selected!", 2)
     elseif not projectDetails.username then
-        error("Cannot find tilesets because no username is selected. This should not happen", 2)
+        error("Cannot find metadata because no username is selected. This should not happen", 2)
     elseif not projectDetails.campaign then
-        error("Cannot find tilesets because no campaign is selected!", 2)
+        error("Cannot find metadata because no campaign is selected!", 2)
     else
-        error("Cannot find tilesets because no map is selected!", 2)
+        error("Cannot find metadata because no map is selected!", 2)
     end
 end
 

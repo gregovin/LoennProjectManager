@@ -93,13 +93,13 @@ function script.prerun()
         script.parameters.models = models
         script.parameters.textures = textures
     elseif not projectDetails.name then
-        error("Cannot find tilesets because no project is selected!", 2)
+        error("Cannot find metadata because no project is selected!", 2)
     elseif not projectDetails.username then
-        error("Cannot find tilesets because no username is selected. This should not happen", 2)
+        error("Cannot find metadata because no username is selected. This should not happen", 2)
     elseif not projectDetails.campaign then
-        error("Cannot find tilesets because no campaign is selected!", 2)
+        error("Cannot find metadata because no campaign is selected!", 2)
     else
-        error("Cannot find tilesets because no map is selected!", 2)
+        error("Cannot find metadata because no map is selected!", 2)
     end
 end
 
@@ -139,7 +139,8 @@ function script.run(args)
         if not fileSystem.isDirectory(script.textureLocale) then
             fileSystem.mkpath(script.textureLocale)
         end
-        local path = pUtils.pathDiff(fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases", "Mountain"),
+        local path = pUtils.pathDiff(
+            fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases", "Mountain"),
             script.textureLocale)
         metadataHandler.setNested(metadataHandler.loadedData, { "Mountain", "MountainTextureDirectory" },
             string.gsub(path, "\\", "/"))
