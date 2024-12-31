@@ -15,7 +15,7 @@ local utils = require("utils")
 local oldImg
 local script = {
     name = "addSimpleEndscreen",
-    displayName = "Add Simple Endscreen",
+    displayName = "Simple Endscreen",
     layer = "metadata",
     tooltip = "Add or edit an endscreen with one non-animated image that will cover the whole screen",
     parameters = {
