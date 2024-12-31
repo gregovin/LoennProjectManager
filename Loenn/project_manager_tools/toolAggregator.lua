@@ -35,6 +35,7 @@ if maxLonnVersion > currentLonnVersion and currentLonnVersion >= minLoennVersion
     safeAddImporter("setMountainMusic")
     safeAddImporter("addSimpleEndscreen")
     safeAddImporter("simpleVignette")
+    safeAddImporter("zipMod")
 else
     safeAddImporter("versionNotif")
 end
