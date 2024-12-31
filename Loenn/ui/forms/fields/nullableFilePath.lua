@@ -1,23 +1,25 @@
 local uiElements = require("ui.elements")
 local filesystem = require("utils.filesystem")
 local fileLocations = require("file_locations")
+local iconUtils = require("ui.utils.icons")
+local uiUtils = require("ui.utils")
 local utils = require("utils")
-local directFilepathField = {}
+local nullableFilepathField = {}
 
-directFilepathField.fieldType = "loennProjectManager.filePath"
+nullableFilepathField.fieldType = "loennProjectManager.nullableFilePath"
 
-directFilepathField._MT = {}
-directFilepathField._MT.__index = {}
+nullableFilepathField._MT = {}
+nullableFilepathField._MT.__index = {}
 
-function directFilepathField._MT.__index:setValue(value)
+function nullableFilepathField._MT.__index:setValue(value)
     self.currentValue = value
 end
 
-function directFilepathField._MT.__index:getValue()
+function nullableFilepathField._MT.__index:getValue()
     return self.currentValue
 end
 
-function directFilepathField._MT.__index:fieldValid()
+function nullableFilepathField._MT.__index:fieldValid()
     local value = self:getValue()
     return type(value) == "string" and
         (filesystem.isFile(value) or filesystem.isDirectory(value) or (value == "" and self.allowEmpty))
@@ -25,9 +27,11 @@ end
 
 local function updateButtonLabel(button, newFilepath)
     if newFilepath then
-        button.label.text = utils.filename(utils.stripExtension(newFilepath):gsub("\\", "/"), "/")
+        button.label.text = utils.filename(utils.stripExtension(newFilepath):gsub("\\", "/"), "/") or ""
         button.label.interactive = 1
         button.label.tooltipText = newFilepath
+    else
+        button.label.text = ""
     end
 end
 
@@ -52,7 +56,7 @@ local function buttonPressed(self, options)
     end
 end
 
-function directFilepathField.getElement(name, value, options)
+function nullableFilepathField.getElement(name, value, options)
     local formField = {}
 
     local minWidth = options.minWidth or options.width or 160
@@ -75,27 +79,30 @@ function directFilepathField.getElement(name, value, options)
             maxWidth = maxWidth
         })
     end
-    if value ~= "" then
-        updateButtonLabel(button, value)
-    end
-
+    updateButtonLabel(button, value)
     if options.tooltipText then
         label.interactive = 1
         label.tooltipText = options.tooltipText
     end
 
     label.centerVertically = true
+    local clearinator = uiElements.button("X", function()
+        formField:setValue("")
+        updateButtonLabel(button, "")
+    end)
 
     formField.label = label
     formField.button = button
     formField.name = name
     formField.width = 2
     formField.allowEmpty = options.allowEmpty
-    formField.elements = {
-        label, button
-    }
 
-    return setmetatable(formField, directFilepathField._MT)
+    formField.elements = {
+        label, button, clearinator
+    }
+    setmetatable(formField, nullableFilepathField._MT)
+
+    return formField
 end
 
-return directFilepathField
+return nullableFilepathField

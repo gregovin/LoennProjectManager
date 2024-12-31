@@ -14,20 +14,20 @@ local utils = require("utils")
 
 local oldImg
 local script = {
-    name = "addSimpleEndscreen",
-    displayName = "Simple Endscreen",
+    name = "addSimpleVignetteScreen",
+    displayName = "Simple Vignette Screen",
     layer = "metadata",
-    tooltip = "Add or edit an endscreen with one non-animated image that will cover the whole screen",
+    tooltip = "Add or edit a vignette screen",
     parameters = {
         image = "",
         title = "",
         music = "",
     },
     tooltips = {
-        image = "The image to use for the endscreen. Note: images will be autoscalled to fit the screen.",
+        image = "The image to use for the vignette screen. Note: images will be autoscalled to fit the screen.",
         title =
-        "Dialog key for the title to use for the endscreen, leave blank for no title. Use \"default\" to get the default key",
-        music = "Music event key for the endscreen, if you want to use non-default music"
+        "Dialog key for the title to use for the endscreen, leave blank for no title.",
+        music = "Music event key for the endscreen, if you want to use non-default music",
     },
     fieldInformation = {
         image = {
@@ -60,20 +60,16 @@ function script.prerun()
         if not projectLoader.cacheValid then
             projectLoader.loadMetadataDetails(projectDetails)
         end
-        atlas = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Atlas" })
-        atlas = atlas or fileSystem.joinpath("Endscreens", projectDetails.username, projectDetails.campaign)
-        local l = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Layers" })
+        atlas = metadataHandler.getNestedValueOrDefault({ "LoadingVignetteScreen", "Atlas" })
+        atlas = atlas or fileSystem.joinpath("VignetteScreens", projectDetails.username, projectDetails.campaign)
+        local l = metadataHandler.getNestedValueOrDefault({ "LoadingVignetteScreen", "Layers" })
         local img = nil
-        local has_ui = false
         for i, layer in ipairs(l) do
             if layer["Type"] == "layer" then
                 if img or #layer["Images"] > 1 then
                     error("Current endscreen is not simple and cannot be modified with this tool")
                 end
                 img = layer["Images"][1]
-            end
-            if layer["Type"] == "ui" then
-                has_ui = true
             end
         end
         if img then
@@ -83,10 +79,14 @@ function script.prerun()
             script.parameters.image = ""
         end
         oldImg = script.parameters.image
-        script.parameters.music = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "MusicBySide",
-            metadataHandler.side })
-        script.parameters.title = metadataHandler.getNestedValue({ "CompleteScreen", "Title", sideNames
-            [metadataHandler.side] }) or (has_ui and "default") or ""
+        script.parameters.music = metadataHandler.getNestedValueOrDefault({ "LoadingVignetteScreen", "MusicBySide",
+            metadataHandler.side }) or ""
+        if #l == 0 then
+            script.parameters.title = metadataHandler.getNestedValueOrDefault({ "LoadingVignetteText", "Dialog" }) or ""
+        else
+            script.parameters.title = metadataHandler.getNestedValue({ "LoadingVignetteScreen", "Title", sideNames
+                [metadataHandler.side] }) or ""
+        end
     elseif not projectDetails.name then
         error("Cannot find metadata because no project is selected!", 2)
     elseif not projectDetails.username then
@@ -102,7 +102,7 @@ function script.run(args)
     local projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
     if args.image ~= "" and not pUtils.isPng(args.image) then
-        logging.warning(string.format("Cannot use " .. args.image .. " as an endscreen, it is not a png"))
+        logging.warning(string.format("Cannot use " .. args.image .. " as a vignette screen, it is not a png"))
         notifications.notify("Selected image is not a real png")
         return
     end
@@ -134,10 +134,6 @@ function script.run(args)
         end
     end
     fileTarget = fileSystem.joinpath(fileTarget, fileSystem.filename(args.image))
-    if args.image == oldImg and oldImg == "" then
-        notifications.notify("Previous and new image are both null, cannot update")
-        return
-    end
     if args.image ~= "" and args.image ~= oldImg then --if we have a new image set functions to copy/uncopy it
         copyImg = function()
             local success, message = fileSystem.copy(args.image, fileTarget)
@@ -175,14 +171,15 @@ function script.run(args)
         end
     end
     local dataBefore = utils.deepcopy(metadataHandler.loadedData)
-    metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Atlas" }, string.gsub(atlas, "\\", "/"))
-    --determine the correct scaling
-    -- see http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html for the png spec
-    -- A png starts with an 8 byte magic header(checked in pUtils.isPng)
-    -- Then a series of chunks
-    -- The first chunk has a known data format. Specifically, the first 24 bytes of a png are
-    -- HHHHHHHHFFFFFFFFWWWWHHHH
     if args.image ~= "" then
+        metadataHandler.setNestedIfNotDefault({ "LoadingVignetteText" }, nil)
+        metadataHandler.setNestedIfNotDefault({ "LoadingVignetteScreen", "Atlas" }, string.gsub(atlas, "\\", "/"))
+        --determine the correct scaling
+        -- see http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html for the png spec
+        -- A png starts with an 8 byte magic header(checked in pUtils.isPng)
+        -- Then a series of chunks
+        -- The first chunk has a known data format. Specifically, the first 24 bytes of a png are
+        -- HHHHHHHHFFFFFFFFWWWWHHHH
         local scale = 1
         local test, message = io.open(args.image, "rb")
         if test then
@@ -200,39 +197,31 @@ function script.run(args)
                 scale = hr
             end
         end
-        metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers" },
+        metadataHandler.setNestedIfNotDefault({ "LoadingVignetteScreen", "Layers" },
             { {
                 Type = "layer",
                 Images = { fileSystem.stripExtension(fileSystem.filename(args.image)) },
                 Scale = scale,
                 Alpha = 1.0,
             } })
+        if args.music ~= "" then
+            metadataHandler.setNestedIfNotDefault({ "LoadingVignetteScreen", "MusicBySide",
+                metadataHandler.side }, args.music)
+        end
+        if args.title ~= "" then
+            metadataHandler.setNestedIfNotDefault({ "LoadingVignetteScreen", "Layers", 2 }, { Type = "ui" })
+            metadataHandler.setNestedIfNotDefault({ "LoadingVignetteScreen", "Title", sideNames
+                [metadataHandler.side] }, args.title)
+        end
     else
-        metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers" }, {})
+        metadataHandler.setNestedIfNotDefault({ "LoadingVignetteScreen", nil })
+        if args.title ~= "" then
+            metadataHandler.setNestedIfNotDefault({ "LoadingVignetteText", "Dialog" }, args.title)
+        else
+            metadataHandler.setNestedIfNotDefault({ "LoadingVignetteText" }, nil)
+        end
     end
 
-    if args.music ~= "" then
-        metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "MusicBySide",
-            metadataHandler.side }, args.music)
-    end
-    if args.title ~= "" then
-        local tset = nil
-        local fset = nil
-        if args.title ~= "default" then
-            tset = args.title
-            fset = args.title .. "_FULLCLEAR"
-        end
-        if args.image ~= "" then
-            metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 2 }, { Type = "ui" })
-        else
-            metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Layers", 1 }, { Type = "ui" })
-        end
-        metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", sideNames
-            [metadataHandler.side] }, tset)
-        if metadataHandler.side == 1 then
-            metadataHandler.setNestedIfNotDefault({ "CompleteScreen", "Title", "FullClear" }, fset)
-        end
-    end
     local dataAfter = utils.deepcopy(metadataHandler.loadedData)
     metadataHandler.update({})
     local redoMetadata = function()
