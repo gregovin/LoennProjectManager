@@ -78,7 +78,7 @@ function script.run(args)
         end
     elseif cur_os == "OS X" then
         local success = os.execute("cd \"" .. mod_locale .. "\"; zip -xr \"" ..
-            fileSystem.joinpath(args.outpod_name) .. ".zip\"" .. zstr)
+            fileSystem.joinpath(args.outputDir, mod_name) .. ".zip\"" .. zstr)
         if not success then
             notifications.notify("Packaging failed")
             logging.info("Packaging " ..
