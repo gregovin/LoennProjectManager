@@ -60,7 +60,7 @@ function script.run(args)
         end
     end
     if cur_os == "Linux" then
-        local success = os.execute("cd " .. mod_locale .. "; zip -r \"" ..
+        local success = os.execute("cd \"" .. mod_locale .. "\"; zip -r \"" ..
             fileSystem.joinpath(args.outputDir, mod_name) .. ".zip\"" .. zstr)
         if not success then
             notifications.notify("Packaging failed")
@@ -68,8 +68,8 @@ function script.run(args)
                 " encountered a failure. This likely means that the zip command is not installed or there is some permision issue")
         end
     elseif cur_os == "Windows" then
-        local success = os.execute("cd " .. mod_locale ..
-            "& tar -a -c -f \"" .. fileSystem.joinpath(args.outputDir, mod_name) .. ".zip\"" .. zstr)
+        local success = os.execute("cd \"" .. mod_locale ..
+            "\"& tar -a -c -f \"" .. fileSystem.joinpath(args.outputDir, mod_name) .. ".zip\"" .. zstr)
         if not success then
             notifications.notify("Packaging failed")
             logging.info("Packaging " ..
@@ -77,7 +77,7 @@ function script.run(args)
                 " encountered a failure. This likely means that there is some permision issue, or if you are on an older windows platform the tar command is not installed.")
         end
     elseif cur_os == "OS X" then
-        local success = os.execute("cd " .. mod_locale .. "; zip -xr \"" ..
+        local success = os.execute("cd \"" .. mod_locale .. "\"; zip -xr \"" ..
             fileSystem.joinpath(args.outpod_name) .. ".zip\"" .. zstr)
         if not success then
             notifications.notify("Packaging failed")
