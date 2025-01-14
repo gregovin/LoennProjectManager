@@ -109,6 +109,7 @@ function script.run(args)
     if not png then
         notifications.notify(notifMsg)
         logging.warning(logMsg)
+        return
     end
     --determine the path the tileset should go to and make it
     local tilesetName = fileSystem.filename(args.tilesetFile)

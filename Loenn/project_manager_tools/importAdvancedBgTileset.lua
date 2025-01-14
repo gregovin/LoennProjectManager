@@ -106,6 +106,7 @@ function script.run(args)
     if not png then
         notifications.notify(notifMsg)
         logging.warning(logMsg)
+        return
     end
     --determine the path the tileset should go to and make it
     local tilesetName = fileSystem.filename(args.tilesetFile)
@@ -134,7 +135,7 @@ function script.run(args)
         pName = pName ..
             string.char(math.random(97, 97 + 25)) --add a random lowercase letter to the filename until its unique
     end
-    tilesetName = pName .. ".png"             --update the tileName to the new desired path
+    tilesetName = pName .. ".png"                 --update the tileName to the new desired path
     --if we changed the display name then we should update it if we didn't allready have a displayName
     args.name = (#args.name > 0 and args.name) or preferedDefaultName
     path = fileSystem.convertToUnixPath(fileSystem.joinpath(path, pName))
