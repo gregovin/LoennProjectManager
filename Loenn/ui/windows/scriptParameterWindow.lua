@@ -4,6 +4,7 @@ local languageRegistry = require("language_registry")
 local utils = require("utils")
 local widgetUtils = require("ui.widgets.utils")
 local form = require("ui.forms.form")
+local mods = require("mods")
 
 local contextWindow = {}
 
@@ -43,7 +44,7 @@ end
 
 local function getItemFieldInformation(scriptHandler)
     local fieldInformation = scriptHandler.fieldInformation and utils.callIfFunction(scriptHandler.fieldInformation) or
-    {}
+        {}
 
     return utils.deepcopy(fieldInformation)
 end
@@ -152,7 +153,8 @@ function contextWindow.createContextMenu(scriptHandler, callbackOnAccept, contex
     }
 
     local windowTitle = "Editing Script Parameters\n" ..
-    scriptHandler.displayName                                                      --tostring(language.ui.selection_context_window.title)
+        scriptHandler
+        .displayName --tostring(language.ui.selection_context_window.title)
     local selectionForm = form.getForm(buttons, dummyData, {
         fields = fieldInformation,
         fieldOrder = fieldOrder
