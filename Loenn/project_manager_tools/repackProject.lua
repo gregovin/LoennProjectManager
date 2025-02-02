@@ -27,21 +27,22 @@ function postscript.prerun()
         elementOptions = filename,
     }
     postscript.parameters = {}
-    postscript.tooltips = {}
-    postscript.fieldInformation = {}
-    postscript.fieldOrder = {}
+    postscript.tooltips = {
+        modName =
+        "The identifier for mod. This will be the top level folder your mod will be saved in. It should be unique.\n Must be a valid portable filename. \nFor many mods it makes sense for this to be the same as or similar your Map Name.",
+        username = "Your username. Must be a valid portable filename"
+    }
+    postscript.fieldInformation = {
+        modName = filename,
+        username = filename
+    }
+    postscript.fieldOrder = {"modName","username"}
     local fname = state.filename
     if pdetails.name and pdetails.username and pdetails.campaign and pdetails.map and fileSystem.joinpath(modsDir, pdetails.name,
             "Maps", pdetails.username, pdetails.campaign, pdetails.map .. ".bin") == fname then
         postscript.parameters.modName = pdetails.name
-        postscript.tooltips.modName =
-        "The identifier for mod. This will be the top level folder your mod will be saved in. It should be unique.\n Must be a valid portable filename. \nFor many mods it makes sense for this to be the same as or similar your Map Name."
-        postscript.fieldInformation.modName = filename
-        table.insert(postscript.fieldOrder, "modName")
         postscript.parameters.username = pdetails.username
-        postscript.tooltips.username = "Your username. Must be a valid portable filename"
-        postscript.fieldInformation.username = filename
-        table.insert(postscript.fieldOrder, "username")
+
         local campaigns = settings.get("campaigns", {}, "recentProjectInfo")
         for _, v in ipairs(campaigns) do
             local sv = v
@@ -85,14 +86,8 @@ function postscript.prerun()
         local mapname = fileSystem.stripExtension(table.remove(srelpath))
         --srelpath = modName?, "Maps"?, userName?, campaignName?
         postscript.parameters.modName = srelpath[1] or ""
-        postscript.tooltips.modName =
-        "The identifier for mod. This will be the top level folder your mod will be saved in. It should be unique.\n Must be a valid portable filename. \nFor many mods it makes sense for this to be the same as or similar your Map Name."
-        postscript.fieldInformation.modName = filename
-        table.insert(postscript.fieldOrder, "modName")
         postscript.parameters.username = srelpath[3] or settings.get("username", "")
-        postscript.tooltips.username = "Your username. Must be a valid portable filename"
-        postscript.fieldInformation.username = filename
-        table.insert(postscript.fieldOrder, "username")
+
         if srelpath[4] then
             --in this case there is at least one campaign
             local ctarg = fileSystem.joinpath(modsDir, srelpath[1], srelpath[2], srelpath[3])
