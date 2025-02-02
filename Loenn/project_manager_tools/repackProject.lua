@@ -10,7 +10,7 @@ local modsDir = fileSystem.joinpath(fileLocations.getCelesteDir(), "Mods")
 
 local postscript = {
     name = "repackProject",
-    displayNmae = "Repackage Project",
+    displayName = "Repackage Project",
     tooltip = "Change the folders used by the current project",
     layer = "project",
     --paramaters are dymacally generated
@@ -24,7 +24,7 @@ function postscript.prerun()
     }
     local cmaps = {
         fieldType = "loennProjectManager.customList",
-        elementOptions = filename
+        elementOptions = filename,
     }
     postscript.parameters = {}
     postscript.tooltips = {}
@@ -54,7 +54,9 @@ function postscript.prerun()
             table.insert(postscript.fieldOrder, sv)
             local campaignDir = fileSystem.joinpath(modsDir, pdetails.name, "Maps", pdetails.username, v)
             local mapMap = {}
-            local ms = pUtils.list_dir(campaignDir)
+            local ms = $(pUtils.list_dir(campaignDir)):filter(function (i,item)
+                return fileSystem.fileExtension(item) == 'bin'
+            end)()
             if #ms > 1 then
                 postscript.tooltips[v .. " maps"] = "What to repack " .. v .. "'s maps as"
                 postscript.fieldInformation[v .. " maps"] = cmaps
@@ -67,15 +69,12 @@ function postscript.prerun()
                 postscript.parameters[v .. " maps"] = mapMap
                 table.insert(postscript.fieldOrder, v .. " maps")
             elseif #ms == 1 then
-                local mname = ms[1]
-                local smname = mname
-                if postscript.parameters[mname] then
-                    smname = smname .. " map"
-                end
-                postscript.parameters[smname] = mname
-                postscript.tooltips[smname] = "What to rename map " .. mname .. " as"
-                postscript.fieldInformation[smname] = mapFilename
-                table.insert(postscript.fieldOrder, smname)
+                local mname = fileSystem.stripExtension(ms[1])
+                postscript.parameters[v .. " maps"] = mname
+                postscript.tooltips[v .. " maps"] = "What to rename map " .. mname .. " as"
+                postscript.fieldInformation[v .. " maps"] = table.shallowcopy(mapFilename)
+                postscript.fieldInformation[v .. " maps"].displayName = v.."/"..mname
+                table.insert(postscript.fieldOrder, v .. " maps")
             end
         end
     else
@@ -179,7 +178,30 @@ function postscript.prerun()
         end
     end
 end
-
-local script = warnings.makeWarning("Remaping a project may cause all current saves to become invalid", nil,
-    "Do you wish to proceed", nil, nil, postscript)
+local script = {
+    layer = "project",
+    name = "repackProject",
+    displayName = "Repackage Project",
+    tooltip = "Change the folders used by the current project",
+    parameters = {
+        warningLabel = "",
+        agree = false
+    },
+    tooltips = {
+        
+    },
+    fieldInformation = {
+        warningLabel = {
+            fieldType = "loennProjectManager.label",
+            labelName = "Repacking a project may invalidate any celeste saves for that project"
+        },
+        agree = {
+            fieldType = "loennProjectManager.verificationCheckbox",
+            labelName = "I understand and wish to proceed"
+        }
+    },
+    fieldOrder = {"warningLabel","agree"},
+    verb = "proceed",
+    nextScript = postscript
+}
 return script

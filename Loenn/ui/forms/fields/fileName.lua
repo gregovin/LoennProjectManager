@@ -1,4 +1,5 @@
 local stringField = require("ui.forms.fields.string")
+local logging = require("logging")
 
 -- A field for valid file names on windows(also should work on mac and linux, though is needlessly restrictive)
 local fileName = {}

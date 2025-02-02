@@ -1,4 +1,4 @@
-local mods = require("Mods")
+local mods = require("mods")
 local logging = require("logging")
 local uiElements = require("ui.elements")
 local languageRegistry = require("language_registry")
@@ -30,10 +30,6 @@ function notifHandlers:loennProjectManagerLooseBinEvent(filename)
             })
         })
     end)
-end
-
-function notifHandlers:loennProjectManagerUniversalTestEvent()
-    logging.info("Hello World from event")
 end
 
 function eventNotifications.getWindow()

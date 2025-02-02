@@ -5,6 +5,7 @@ local uiElements = require("ui.elements")
 local languageRegistry = require("language_registry")
 local uiUtils = require("ui.utils")
 local form = require("ui.forms.form")
+local logging = require("logging")
 
 local listField = {}
 listField.fieldType = "loennProjectManager.customList"
@@ -25,17 +26,8 @@ function listField._MT.__index:getValue()
     return self.currentValue
 end
 
-function listField._MT.__index:validateItem(v)
-    return self.validator(v)
-end
-
 function listField._MT.__index:fieldValid()
-    for k, v in pairs(self:getValue()) do
-        if not self:validateItem(v) then
-            return false
-        end
-    end
-    return true
+    return self.isValid
 end
 
 local function getLabelString(field, names, maxLen)
@@ -48,7 +40,7 @@ local function getLabelString(field, names, maxLen)
                 out = out .. sep .. "..."
                 return out
             end
-            out = out .. sep .. field.keyDisplayTransformer(k) .. "→" .. field.displayTransformer(v)
+            out = out .. sep .. field.keyDisplayTransformer(k) .. ": " .. field.displayTransformer(v)
             sep = ", "
             count += 1
         end
@@ -98,6 +90,7 @@ local function getSubformElements(formField, value, options)
 
             table.remove(formElement.elements, 1)
         end
+        table.insert(elements, formElement)
         if not options.setLength then
             -- Fake remove button as a form field
             local removeButton = uiElements.button(
@@ -112,8 +105,6 @@ local function getSubformElements(formField, value, options)
                     return true
                 end
             }
-
-            table.insert(elements, formElement)
             table.insert(elements, fakeElement)
         end
     end
@@ -121,6 +112,18 @@ local function getSubformElements(formField, value, options)
 end
 local function updateTextField(formField, formData, options)
     formField.field:setText(getLabelString(formField, formData, formField.maxLen))
+    local valid = formField:fieldValid()
+    local validVisuals = formField.validVisuals
+
+    if valid ~= validVisuals then
+        if not valid then
+            formField.field.style = invalidStyle
+        else
+            formField.field.style = nil
+        end
+        formField.validVisuals = valid
+        formField.field:repaint()
+    end
 end
 function listField.getElement(name, value, options)
     local formField = {}
@@ -128,6 +131,7 @@ function listField.getElement(name, value, options)
     local minWidth = options.minWidth or options.width or 160
     local maxWidth = options.maxWidth or options.width or 160
     options.elementOptions = options.elementOptions or {}
+
     options.elementOptions.fieldType = options.elementOptions.fieldType or "string"
     formField.allowEmpty = options.allowEmpty
     options.setLength = options.setLength or #value == 0
@@ -135,6 +139,7 @@ function listField.getElement(name, value, options)
     formField.displayTransformer = options.displayTransformer or function(v)
         return tostring(v)
     end
+    formField.validator = options.elementOptions.validator or function(v) return true end
     formField.maxLen = options.maxLen
     local label = uiElements.label(options.displayName or name)
     formField.contents = {}
@@ -142,10 +147,11 @@ function listField.getElement(name, value, options)
         minWidth = minWidth,
         maxWidth = maxWidth
     })
-    local contextMenuOptions = options.contextMenuOptions or { mode = "focused" }
+    local contextMenuOptions = options.contextMenuOptions or
+        { mode = "focused", shouldShowMenu = function() return true end }
     local fieldWithContext = contextMenu.addContextMenu(formField.field, function()
         local language = languageRegistry.getLanguage()
-        local formElements = getSubformElements(formField, value, options)
+        local formElements = getSubformElements(formField, formField:getValue(), options)
         local columnElements = {}
         if #formElements > 0 then
             local columnCount = (formElements[1].width or 0) + 1
@@ -153,6 +159,8 @@ function listField.getElement(name, value, options)
                 columns = columnCount,
                 formFieldChanged = function(fields)
                     local data = form.getFormData(fields)
+                    formField:setValue(data)
+                    formField.isValid = form.formValid(fields)
                     updateTextField(formField, data, options)
                 end
             }
@@ -161,7 +169,7 @@ function listField.getElement(name, value, options)
 
             table.insert(columnElements, formGrid)
         end
-        if not formField.setLength then
+        if not options.setLength then
             local addButton = uiElements.button(
                 tostring(language.forms.fieldTypes.list.addButton),
                 valueAddRowHandler(formField)
@@ -176,11 +184,13 @@ function listField.getElement(name, value, options)
         local column = uiElements.column(columnElements)
 
         return column
-    end)
+    end, contextMenuOptions)
     formField.currentValue = value
     formField.elements = { label, fieldWithContext }
     formField.width = 2
-    return setmetatable(formField, listField._MT)
+    formField.isValid = true
+    setmetatable(formField, listField._MT)
+    return formField
 end
 
 return listField
