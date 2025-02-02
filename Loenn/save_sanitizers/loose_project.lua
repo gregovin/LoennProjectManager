@@ -28,10 +28,9 @@ function sanitizer.beforeSave(filename, state)
         --trigger ui nonsense
         sceneHandler.sendEvent("loennProjectManagerLooseBinEvent", filename)
     elseif #srelpath ~= 5 or srelpath[2] ~= "Maps" then
-
+        sceneHandler.sendEvent("loennProjectManagerBadStructure", filename)
     end
     logging.info("Hello world")
-    sceneHandler.sendEvent("loennProjectManagerUniversalTestEvent")
 end
 
 return sanitizer

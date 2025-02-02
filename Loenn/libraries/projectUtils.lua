@@ -84,10 +84,10 @@ function pUtils.setAsList(set)
 end
 
 ---@class ProjectDetails A collection of project details
----@field name string the name of the mod
----@field username string the username associated with the project
----@field campaign string the campaign associated with the project
----@field map string the map associated with the project
+---@field name string? the name of the mod
+---@field username string? the username associated with the project
+---@field campaign string? the campaign associated with the project
+---@field map string? the map associated with the project
 
 ---Get the project details for the currently loaded project
 ---@return ProjectDetails details the project details

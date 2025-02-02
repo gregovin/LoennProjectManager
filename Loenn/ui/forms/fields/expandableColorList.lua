@@ -259,7 +259,8 @@ function colorListField.getElement(name, value, options)
     local fieldWithContext = contextMenu.addContextMenu(
         field,
         function()
-            return expandableGrid.getGrid(gridLs, 4, { minWidth = ((innerMinWidth - 25) / 2), maxWidth = ((innerMaxWidth - 25) / 2) },
+            return expandableGrid.getGrid(gridLs, 4,
+                { minWidth = ((innerMinWidth - 25) / 2), maxWidth = ((innerMaxWidth - 25) / 2) },
                 function()
                     table.insert(value, fallbackHexColor)
                     local changed = innerFieldChanged(formField, #value)
