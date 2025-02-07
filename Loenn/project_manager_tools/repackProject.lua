@@ -13,7 +13,7 @@ local notifications = require("ui.notification")
 local modsDir = fileSystem.joinpath(fileLocations.getCelesteDir(), "Mods")
 
 
-local repackers = {} ---@type {[string]: Packer}
+local repackers ---@type {[string]: Packer}
 local function rcallback(filename)
     local pathNoExt = fileSystem.stripExtension(filename)
     local mod = utils.humanizeVariableName(string.sub(filename, 2, string.find(filename, "/") - 2)):gsub(" Zip", "")
@@ -22,13 +22,13 @@ local function rcallback(filename)
     if not (repackers[handler.entry] and repackers[handler.entry].overides) then
         repackers[handler.entry] = handler
         if configs.debug.logPluginLoading then
-        logging.info("Loaded everest.yaml remapper '" .. handler.entry .. "' [" .. mod .. "] " .. " from: " .. mod)
+            logging.info("Loaded remapper '" .. handler.entry .. "' [" .. mod .. "]")
         end
     elseif configs.debug.logPluginLoading then
-        logging.info("Everest.yaml remapper '" .. handler.entry .. "' [" .. mod .. "] from " .. mod .." overriden")
+        logging.info("Overrode remapper '" .. handler.entry .. "' [" .. mod .. "]")
     end
 end
-pluginLoader.loadPlugins(mods.findPlugins("repackers"), nil, rcallback, false)
+
 local postscript = {
     name = "repackProject",
     displayName = "Repackage Project",
@@ -202,6 +202,10 @@ function postscript.prerun()
 end
 ---@param args {modName: string, username: string, [string|integer]: string}
 function postscript.run(args)
+    if not repackers then
+        repackers = {}
+        pluginLoader.loadPlugins(mods.findPlugins("repackers"), nil, rcallback, false)
+    end
     --this is where the fun begins
     --step 1: create new modDir if it's different
     local newModDir = fileSystem.joinpath(modsDir,args.modName) ---@type string

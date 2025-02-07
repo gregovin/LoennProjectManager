@@ -15,7 +15,8 @@ local sanitizer = {
 sanitizer.disableEventFor = {}
 
 function sanitizer.beforeSave(filename, state)
-    if not string.find(filename, modsDir, 1, true) or fileSystem.fileExtension(filename) ~= "bin" then
+    local start = string.find(filename, modsDir, 1, true)
+    if not start or start ~= 1 or fileSystem.fileExtension(filename) ~= "bin" then
         return false
     end
 
@@ -30,7 +31,6 @@ function sanitizer.beforeSave(filename, state)
     elseif #srelpath ~= 5 or srelpath[2] ~= "Maps" then
         sceneHandler.sendEvent("loennProjectManagerBadStructure", filename)
     end
-    logging.info("Hello world")
 end
 
 return sanitizer

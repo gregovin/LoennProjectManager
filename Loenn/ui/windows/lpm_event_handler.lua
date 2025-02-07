@@ -3,18 +3,19 @@ local logging = require("logging")
 local uiElements = require("ui.elements")
 local languageRegistry = require("language_registry")
 local notifications = require("ui.notification")
+local projectManager = mods.requireFromPlugin("tools.projectManager")
+local repacker = mods.requireFromPlugin("project_manager_tools.repackProject")
 
 local notifHandlers = {}
 local eventNotifications = {}
 function notifHandlers:loennProjectManagerLooseBinEvent(filename)
     local language = languageRegistry.getLanguage()
-
     notifications.notify(function(popup)
         return uiElements.column({
             uiElements.label(tostring(language.ui.notifications.loennProjectManager.looseBin)),
             uiElements.row({
                 uiElements.button(tostring(language.ui.button.yes), function()
-                    --my nonsense
+                    projectManager.useScript(repacker, {})
                     popup:close()
                 end),
                 uiElements.button(tostring(language.ui.button.no), function()

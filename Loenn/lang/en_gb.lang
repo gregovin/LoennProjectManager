@@ -6,5 +6,5 @@ layers.name.foreground=Fg Tiles
 layers.name.background=Bg Tiles
 layers.name.metadata=Metadata
 
-ui.notifications.loennProjectManager.looseBin=Loose Bin Dectected: 
+ui.notifications.loennProjectManager.looseBin=Would you like to package this bin?
 ui.button.LoennProjectManager.looseBinSanRemindMeLater=Remind Me Later
