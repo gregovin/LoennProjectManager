@@ -28,8 +28,16 @@ function sanitizer.beforeSave(filename, state)
     if #srelpath == 1 then
         --trigger ui nonsense
         sceneHandler.sendEvent("loennProjectManagerLooseBinEvent", filename)
+        return
     elseif #srelpath ~= 5 or srelpath[2] ~= "Maps" then
         sceneHandler.sendEvent("loennProjectManagerBadStructure", filename)
+        return
+    end
+    local projectDetails = pUtils.getProjectDetails()
+    if not (projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.username
+            and fileSystem.joinpath(modsDir, projectDetails.name, "Maps", projectDetails.username,
+                projectDetails.campaign, projectDetails.map .. ".bin") == filename) then
+        sceneHandler.sendEvent("loennProjectManagerResync", filename)
     end
 end
 

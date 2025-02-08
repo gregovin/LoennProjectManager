@@ -8,3 +8,4 @@ layers.name.metadata=Metadata
 
 ui.notifications.loennProjectManager.looseBin=Would you like to package this bin?
 ui.button.LoennProjectManager.looseBinSanRemindMeLater=Remind Me Later
+ui.notifications.loennProjectManager.resync=Would you like to resync the open project?
