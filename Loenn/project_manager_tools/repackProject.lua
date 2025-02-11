@@ -200,7 +200,7 @@ function postscript.prerun()
         table.insert(postscript.fieldOrder,smapname)
     end
 end
----@param args {modName: string, username: string, [string|integer]: string}
+---@param args {modName: string, username: string, [string|integer]: any}
 function postscript.run(args)
     if not repackers then
         repackers = {}
@@ -236,19 +236,51 @@ function postscript.run(args)
             elseif postscript.additionalInfo[k].reffersTo then
                 local cname = postscript.additionalInfo[k].inCampaign or 0 ---@type string|integer
                 cmap[cname] = cmap[cname] or {}
-                cmap[cname].mapMap = cmap[cname].mapMap or 0
+                cmap[cname].mapMap = cmap[cname].mapMap or {}
                 local mname = postscript.additionalInfo[k].reffersTo ---@type string
                 cmap[cname].mapMap[mname] = v
             elseif postscript.additionalInfo[k].multiple then
                 local cname = postscript.additionalInfo[k].inCampaign or 0  ---@type string|integer
                 cmap[cname] = cmap[cname] or {}
-                cmap[cmap].mapMap = v
+                cmap[cname].mapMap = v
             end
         end
-        for _, e in pUtils.list_dir(newModDir) do
+        for _, e in ipairs(pUtils.list_dir(newModDir)) do
             e = string.lower(e)
             if repackers[e] then
                 repackers[e].apply(args.modName,umap,cmap,newModDir)
+            end
+        end
+        --load the right map
+        settings.set("username", args.username)
+        settings.set("name", args.modName, "recentProjectInfo")
+        local newTarget = fileSystem.joinpath(modsDir, args.modName,"Maps",args.username)
+        local campaigns = {}
+        for _,v in pairs(cmap) do
+            table.insert(campaigns,v.newName)
+        end
+        table.sort(campaigns)
+        settings.set("campaigns", campaigns, "recentProjectInfo")
+        --srelpath = {modName, "Maps", username, campaignname}
+        local cm
+        if srelpath[4] then --if there is a campaign
+            cm = cmap[srelpath[4]]
+        else
+            cm = cmap[0]
+        end
+        if cm then
+            newTarget = fileSystem.joinpath(newTarget,cm.newName)
+            settings.set("SelectedCampaign", cm.newName, "recentProjectInfo")
+            local maps = {}
+            for _,v in pairs(cm.mapMap) do
+                table.insert(maps,v)
+            end
+            table.sort(maps)
+            settings.set("maps", maps, "recentProjectInfo")
+            if cm.mapMap[mapname] then
+                settings.set("recentmap",cm.mapMap[mapname], "recentProjectInfo")
+                newTarget = fileSystem.joinpath(newTarget,cm.mapMap[mapname]..".bin")
+                pLoader.loadMap(newTarget)
             end
         end
     else
@@ -270,7 +302,7 @@ function postscript.run(args)
         settings.set("recentmap",newmapname, "recentProjectInfo")
         local mapLocal = fileSystem.joinpath(mfolder,newmapname .. ".bin")
         fileSystem.rename(fname, mapLocal)
-        state.loadFile(mapLocal)
+        pLoader.loadMap(mapLocal)
     end
     pLoader.clearMetadataCache()
     --unset script info so the garbage collector can eat it
