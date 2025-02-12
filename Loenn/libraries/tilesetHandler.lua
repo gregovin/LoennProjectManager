@@ -349,7 +349,7 @@ end
 
 ---Get or create the location of a tileset xml
 ---@param foreground boolean weather the desired xml is the foregroundTiles.xml or backgroundTiles.xml
----@param projectDetails table the project details(as returned by pUtils.getProjectDetails())
+---@param projectDetails ProjectDetails the project details(as returned by pUtils.getProjectDetails())
 ---@return string path the path of the tileset xml
 function handler.prepareXmlLocation(foreground, projectDetails)
     local foregroundXml = settings.get("foregroundTilesXml", nil, "recentProjectInfo")
@@ -357,7 +357,7 @@ function handler.prepareXmlLocation(foreground, projectDetails)
     local target = (foreground and foregroundXml) or (not foreground and backgroundXml)
     local targetName = (foreground and "ForegroundTiles.xml") or "BackgroundTiles.xml"
     if not target then
-        local ftarget = fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", projectDetails.campaign)
+        local ftarget = fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", projectDetails.username, projectDetails.campaign)
         if not fileSystem.isDirectory(ftarget) then
             fileSystem.mkpath(ftarget)
         end
@@ -368,13 +368,13 @@ function handler.prepareXmlLocation(foreground, projectDetails)
 end
 
 ---Get or create the path at which tileset images should be created
----@param projectDetails table the project details(as returned by pUtils.getProjectDetails())
+---@param projectDetails ProjectDetails the project details(as returned by pUtils.getProjectDetails())
 ---@return string tilesetsDir the absolute path to the tileset directory (ie .../Graphics/Atlases/Gameplay/tilesets)
 ---@return string path the relative path from the tilesetDir to the storage location
 function handler.prepareTilesetPath(projectDetails)
     local tilesetsDir = fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "Atlases", "Gameplay", "tilesets")
     if handler.tpath then return tilesetsDir, handler.tpath end
-    local path = projectDetails.campaign
+    local path = fileSystem.joinpath(projectDetails.username, projectDetails.campaign)
     if not fileSystem.isDirectory(fileSystem.joinpath(tilesetsDir, path)) then
         local success, message = fileSystem.mkpath(fileSystem.joinpath(tilesetsDir, path))
         if not success then
@@ -439,6 +439,8 @@ function handler.removeTileset(name, foreground,xmlTarget)
     end
     dict[searchId] = nil
     tilesets[name] = nil
+    ---For some reason a 1 param filter works here
+    ---@diagnostic disable-next-line: undefined-field
     tileXml.Data.Tileset = $(tileXml.Data.Tileset):filter(tXml -> tXml._attr.id ~= searchId)()
     ids_used = $(ids_used):filter(id-> id~=searchId)
     if searchId < utf8.char(curId) then
