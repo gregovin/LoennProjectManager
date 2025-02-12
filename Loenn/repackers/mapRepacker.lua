@@ -17,6 +17,8 @@ function packer.apply(modname, umap, content_map, topdir)
     if not fileSystem.isDirectory(tempfolder) then
         fileSystem.mkpath(tempfolder)
     end
+    fileSystem.mkpath(fileSystem.joinpath(tempfolder, "campaigns"))
+    fileSystem.mkpath(fileSystem.joinpath(tempfolder, "maps"))
     ---select the map directory
     local mapdir = fileSystem.joinpath(topdir, "Maps")
     --extract the usernames from the umap
