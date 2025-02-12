@@ -57,20 +57,19 @@ function packer.apply(modname, umap, content_map, topdir)
         if fileSystem.isDirectory(olditem) then                                                          --if its a folder we have a campaign
             if content_map[cname] then
                 local newcamp = fileSystem.joinpath(tempfolder, "campaigns", content_map[cname].newName) --so keep track of the new path
-                fileSystem.rename(olditem, newcamp)                                                      --and rename it
                 --note we put this in the temp folder so we can swap two campaigns names are fine
                 --then iterate over each file in the dir
-                for _, mapf in ipairs(pUtils.list_dir(newcamp)) do
+                for _, mapf in ipairs(pUtils.list_dir(olditem)) do
                     local mapname = fileSystem.stripExtension(mapf)
                     --if its a file we have a remaping for
-                    local oldmap = fileSystem.joinpath(newcamp, mapf)
+                    local oldmap = fileSystem.joinpath(olditem, mapf)
                     if fileSystem.isFile(oldmap) and content_map[cname].mapMap[mapname] then
                         --do the remapping
                         --Put the new file in the temp folder to allow file swapping
                         fileSystem.rename(oldmap,
                             fileSystem.joinpath(tempfolder, "maps", content_map[cname].mapMap[mapname] .. ".bin"))
                         --if we have a meta.yaml file for it also map that
-                        local oldyml = fileSystem.joinpath(newcamp, mapname .. ".meta.yaml")
+                        local oldyml = fileSystem.joinpath(olditem, mapname .. ".meta.yaml")
                         if fileSystem.isFile(oldyml) then
                             fileSystem.rename(oldyml,
                                 fileSystem.joinpath(tempfolder, "maps",
