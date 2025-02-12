@@ -5,7 +5,6 @@ local fileSystem = require("utils.filesystem")
 local packer = {
     entry = "maps",
     overides = true,
-    handers = {}
 }
 ---Apply this repacker
 ---@param modname string the name of the mod
@@ -89,4 +88,4 @@ function packer.apply(modname, umap, content_map, topdir)
     end
 end
 
-return packer ---@type Packer
+return packer
