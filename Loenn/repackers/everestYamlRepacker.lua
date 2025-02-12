@@ -5,11 +5,17 @@ local pluginLoader = require("plugin_loader")
 local logging = require("logging")
 local configs = require("configs")
 
+---@class PHook
+---@field parents integer how many parents to backtrack up
+---@field target any[] the target of the packer hook. Some packers might use special values/types for their hooks
+---@field content any the content to apply
+
 local utils = require("utils")
 ---@class Packer
 ---@field entry string a one element name that refers to the desired path of the item or folder that must be changed
 ---@field overides boolean? gaurntees that the loaded packer for everest.yaml has overides=true when true
 ---@field __mod string? the handler's source mod
+---@field hooks PHook[]?
 local packer = {
     entry = "everest.yaml",
     overides = true,
@@ -32,12 +38,12 @@ local function flcallback(filename)
         eyml_handers[handler.name] = handler
         if configs.debug.logPluginLoading then
             logging.info("Loaded everest.yaml remapper '" .. handler.name or
-                fileNameNoExt .. "' [" .. mod .. "] " .. " from: " .. mod)
+                fileNameNoExt .. "' [" .. mod .. "]")
         end
     else
         if configs.debug.logPluginLoading then
             logging.info("Everest.yaml remapper '" .. handler.name or
-                fileNameNoExt .. "' [" .. mod .. "] from " .. mod .. " overriden")
+                fileNameNoExt .. "' [" .. mod .. "] overriden")
         end
     end
 end
@@ -46,6 +52,7 @@ local target_pattern = ""
 ---@class CMAP
 ---@field newName string the new campaign name
 ---@field mapMap {[string]: string} a map from current map names in this campaign to new map names
+
 ---Apply this repacker
 ---@param modname string the name of the mod
 ---@param umap {[string]: string} a single element table with umap[currentUsername]=newUsername
@@ -61,6 +68,14 @@ function packer.apply(modname, umap, content_map, topdir)
         ymlconts = h.apply(ymlconts, modname, umap, content_map)
     end
     yaml.write(ymlpth, ymlconts)
+end
+
+---Add a hook to this packer
+---@param h PHook
+---@return PHook? up if the hook applies to a parent, do so there
+function packer.addHook(h)
+    local c = h.content --[[@as YamlHandler]]
+    table.insert(eyml_handers, c)
 end
 
 return packer
