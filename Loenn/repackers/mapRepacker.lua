@@ -1,6 +1,8 @@
 local mods = require("mods")
 local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local fileSystem = require("utils.filesystem")
+local fileLocations = require("file_locations")
+local tempfolder = fileSystem.joinpath(fileLocations.getStorageDir(), "LPMTemp")
 
 local packer = {
     entry = "maps",
@@ -12,6 +14,9 @@ local packer = {
 ---@param content_map {[string|integer]: CMAP} a map from old campaigns to new campaigns. 0 is a sentinel key for unstructured items
 ---@param topdir string the path to the top level mod dir
 function packer.apply(modname, umap, content_map, topdir)
+    if not fileSystem.isDirectory(tempfolder) then
+        fileSystem.mkpath(tempfolder)
+    end
     ---select the map directory
     local mapdir = fileSystem.joinpath(topdir, "Maps")
     --extract the usernames from the umap
@@ -37,7 +42,7 @@ function packer.apply(modname, umap, content_map, topdir)
     if fileSystem.isDirectory(olduserdir) then
         --if the old username is a valid directory, just rename it
         fileSystem.rename(olduserdir, newuserdir)
-    else
+    elseif not fileSystem.isDirectory(newuserdir) then
         --otherwise make the new directory and move everything into it
         local targets = pUtils.list_dir(mapdir)
         fileSystem.mkpath(newuserdir)
@@ -49,10 +54,11 @@ function packer.apply(modname, umap, content_map, topdir)
     for _, cname in ipairs(pUtils.list_dir(newuserdir)) do
         --keep track of the old file
         local olditem = fileSystem.joinpath(newuserdir, cname)
-        if fileSystem.isDirectory(olditem) then                                             --if its a folder we have a campaign
+        if fileSystem.isDirectory(olditem) then                                                          --if its a folder we have a campaign
             if content_map[cname] then
-                local newcamp = fileSystem.joinpath(newuserdir, content_map[cname].newName) --so keep track of the new path
-                fileSystem.rename(olditem, newcamp)                                         --and rename it
+                local newcamp = fileSystem.joinpath(tempfolder, "campaigns", content_map[cname].newName) --so keep track of the new path
+                fileSystem.rename(olditem, newcamp)                                                      --and rename it
+                --note we put this in the temp folder so we can swap two campaigns names are fine
                 --then iterate over each file in the dir
                 for _, mapf in ipairs(pUtils.list_dir(newcamp)) do
                     local mapname = fileSystem.stripExtension(mapf)
@@ -60,16 +66,19 @@ function packer.apply(modname, umap, content_map, topdir)
                     local oldmap = fileSystem.joinpath(newcamp, mapf)
                     if fileSystem.isFile(oldmap) and content_map[cname].mapMap[mapname] then
                         --do the remapping
+                        --Put the new file in the temp folder to allow file swapping
                         fileSystem.rename(oldmap,
-                            fileSystem.joinpath(newcamp, content_map[cname].mapMap[mapname] .. ".bin"))
+                            fileSystem.joinpath(tempfolder, "maps", content_map[cname].mapMap[mapname] .. ".bin"))
                         --if we have a meta.yaml file for it also map that
                         local oldyml = fileSystem.joinpath(newcamp, mapname .. ".meta.yaml")
                         if fileSystem.isFile(oldyml) then
                             fileSystem.rename(oldyml,
-                                fileSystem.joinpath(newcamp, content_map[cname].mapMap[mapname] .. ".meta.yaml"))
+                                fileSystem.joinpath(tempfolder, "maps",
+                                    content_map[cname].mapMap[mapname] .. ".meta.yaml"))
                         end
                     end
                 end
+                fileSystem.rename(fileSystem.joinpath(tempfolder, "maps"), newcamp)
             end
         elseif content_map[0] then --if the item is a file, then it belongs to a degenerate campaign which has sentinel key 0
             local mapname = fileSystem.stripExtension(cname)
@@ -86,6 +95,7 @@ function packer.apply(modname, umap, content_map, topdir)
             end
         end
     end
+    fileSystem.rename(fileSystem.joinpath(tempfolder, "campaigns"), newuserdir) --move the campaigns back into the mod
 end
 
 return packer
