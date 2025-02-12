@@ -29,6 +29,20 @@ local function rcallback(filename)
     end
 end
 
+local function init()
+    repackers = {}
+    pluginLoader.loadPlugins(mods.findPlugins("repackers"), nil, rcallback, false)
+    for _,v in pairs(repackers) do
+        if v.hooks then
+            for _,h in ipairs(v.hooks) do
+                local tv = table.remove(h.target, 1)
+                if tv and repackers[tv] then
+                    repackers[tv].addHook(h)
+                end
+            end
+        end
+    end
+end
 local postscript = {
     name = "repackProject",
     displayName = "Repackage Project",
@@ -203,8 +217,7 @@ end
 ---@param args {modName: string, username: string, [string|integer]: any}
 function postscript.run(args)
     if not repackers then
-        repackers = {}
-        pluginLoader.loadPlugins(mods.findPlugins("repackers"), nil, rcallback, false)
+        init()
     end
     --this is where the fun begins
     --step 1: create new modDir if it's different
@@ -225,26 +238,42 @@ function postscript.run(args)
 
     if #srelpath > 0 then
         --rename the top folder
-        fileSystem.rename(fileSystem.joinpath(modsDir, srelpath[0]),newModDir)
         local umap = {[postscript.parameters.username] = args.username} ---@type {[string]:string}
-        local cmap = {} ---@type {[string|integer]: CMAP} 
+        local cmap = {} ---@type {[string|integer]: CMAP}
+        local nnames = {}--track all campaign names to ensure uniqueness
         for k,v in pairs(args) do
             if postscript.additionalInfo[k].isCampaign then
                 local cname = postscript.additionalInfo[k].reffersTo or 0 ---@type string|integer
                 cmap[cname] = cmap[cname] or {}
                 cmap[cname].newName = v
+                if nnames[v] then
+                    notifications.notify("Cannot repack maps, two campaigns have the same new name")
+                    logging.info("failed to repack maps, "..v.." appears twice as a campaign name")
+                    return
+                end
+                nnames[v] = true
             elseif postscript.additionalInfo[k].reffersTo then
                 local cname = postscript.additionalInfo[k].inCampaign or 0 ---@type string|integer
                 cmap[cname] = cmap[cname] or {}
-                cmap[cname].mapMap = cmap[cname].mapMap or {}
                 local mname = postscript.additionalInfo[k].reffersTo ---@type string
-                cmap[cname].mapMap[mname] = v
+                cmap[cname].mapMap = {[mname] =v}
             elseif postscript.additionalInfo[k].multiple then
                 local cname = postscript.additionalInfo[k].inCampaign or 0  ---@type string|integer
                 cmap[cname] = cmap[cname] or {}
                 cmap[cname].mapMap = v
+                --check that map names are unique
+                local mset = {}
+                for _,mname in pairs(cmap[cname].mapMap) do
+                    if mset[mname] then
+                        notifications.notify("Cannot repack maps, two maps in a campaign have the same name")
+                        logging.info("failed to repack maps, "..mname.." appears twice as a mapname in "..cname)
+                        return
+                    end
+                    mset[mname] =  true
+                end
             end
         end
+        fileSystem.rename(fileSystem.joinpath(modsDir, srelpath[0]),newModDir)
         for _, e in ipairs(pUtils.list_dir(newModDir)) do
             e = string.lower(e)
             if repackers[e] then
