@@ -84,7 +84,7 @@ function packer.apply(modname, umap, content_map, topdir)
             local mapname = fileSystem.stripExtension(cname)
             --if we have a remapping for this file, do it
             if content_map[0].mapMap[mapname] then
-                local newcamp = fileSystem.joinpath(newuserdir, content_map[0].newName)
+                local newcamp = fileSystem.joinpath(tempfolder, "campaigns", content_map[0].newName)
                 fileSystem.mkpath(newcamp)
                 fileSystem.rename(olditem, fileSystem.joinpath(newcamp, content_map[0].mapMap[mapname] .. ".bin"))
                 local oldyml = fileSystem.joinpath(newcamp, mapname .. ".meta.yaml")
