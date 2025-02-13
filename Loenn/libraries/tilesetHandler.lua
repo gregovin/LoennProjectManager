@@ -357,7 +357,7 @@ function handler.prepareXmlLocation(foreground, projectDetails)
     local target = (foreground and foregroundXml) or (not foreground and backgroundXml)
     local targetName = (foreground and "ForegroundTiles.xml") or "BackgroundTiles.xml"
     if not target then
-        local ftarget = fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", projectDetails.username, projectDetails.campaign)
+        local ftarget = fileSystem.joinpath(modsDir, projectDetails.name, "Graphics", "xmls",projectDetails.username, projectDetails.campaign)
         if not fileSystem.isDirectory(ftarget) then
             fileSystem.mkpath(ftarget)
         end

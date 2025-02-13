@@ -19,8 +19,9 @@ local loaders = {}
 ---@param mapLocation string the path to the map to load
 function loaders.loadMap(mapLocation)
     local campaign = settings.get("SelectedCampaign", nil, "recentProjectInfo")
-    local pfground = fileSystem.joinpath("Graphics", campaign, "ForegroundTiles.xml")
-    local pbground = fileSystem.joinpath("Graphics", campaign, "BackgroundTiles.xml")
+    local username = settings.get("username" , nil)
+    local pfground = fileSystem.joinpath("Graphics", "xmls", username, campaign, "ForegroundTiles.xml")
+    local pbground = fileSystem.joinpath("Graphics", "xmls", username, campaign, "BackgroundTiles.xml")
     local tplevel = fileSystem.joinpath(modsDir, settings.get("name", nil, "recentProjectInfo"))
     local mapName = fileSystem.stripExtension(fileSystem.filename(mapLocation))
     if fileSystem.isFile(fileSystem.joinpath(tplevel, pfground)) or fileSystem.isFile(fileSystem.joinpath(tplevel, pbground)) then
@@ -57,7 +58,7 @@ function loaders.newMap(mapLocation, projectDetails)
     local mapName = fileSystem.stripExtension(fileSystem.filename(mapLocation))
     table.insert(projectDetails.maps, mapName)
     local topdir = fileSystem.joinpath(modsDir, projectDetails.name)
-    local xmlpath = fileSystem.joinpath("Graphics", projectDetails.campaign)
+    local xmlpath = fileSystem.joinpath("Graphics", "xmls", projectDetails.username, projectDetails.campaign)
     --check for campaign level xmls and add them to the map
     if fileSystem.isFile(fileSystem.joinpath(topdir, xmlpath, "ForegroundTiles.xml")) then
         emptySide.meta.ForegroundTiles = fileSystem.joinpath(xmlpath, "ForegroundTiles.xml")
