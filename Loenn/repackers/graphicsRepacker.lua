@@ -11,7 +11,6 @@ local packer = {
     overides = true,
 }
 local graphicsHandlers = {} ---@type {[string]: Packer}
-local gxmlRepacker = mods.requireFromPlugin("repackHelpers.graphicalXmlRepacker")
 local function gcallback(filename)
     local pathNoExt = fileSystem.stripExtension(filename)
     local fileNameNoExt = fileSystem.filename(pathNoExt)
@@ -34,9 +33,9 @@ function packer.apply(modname, umap, content_map, topdir)
     local gpath = fileSystem.joinpath(topdir, "Graphics")
     for _, v in ipairs(pUtils.list_dir(gpath)) do
         if graphicsHandlers[v] then
-            graphicsHandlers[v].apply(modname, umap, content_map, gpath)
+            graphicsHandlers[v].apply(v, umap, content_map, gpath)
         else
-            gxmlRepacker.apply(modname, umap, content_map, fileSystem.joinpath(topdir, v))
+            graphicsHandlers["xml"].apply(v, umap, content_map, gpath)
         end
     end
 end
@@ -53,8 +52,6 @@ function packer.addHook(h)
         local tv = table.remove(h.target, 1)
         if graphicsHandlers[tv] then
             graphicsHandlers[tv].addHook(h)
-        elseif tv == 0 then
-            gxmlRepacker.addHook(h)
         end
     end
 end
@@ -71,19 +68,6 @@ for _, v in pairs(graphicsHandlers) do
             for i = 1, #outhooks do
                 packer.hooks[#packer.hooks + 1] = outhooks[i]
             end
-        end
-    end
-end
-if gxmlRepacker.hooks then
-    local outhooks = {}
-    for _, h in ipairs(gxmlRepacker.hooks) do
-        local co = graphicsHandlers.addHook(h)
-        if co then table.insert(outhooks, co) end
-    end
-    if #outhooks > 0 then
-        packer.hooks = packer.hooks or {}
-        for i = 1, #outhooks do
-            packer.hooks[#packer.hooks + 1] = outhooks[i]
         end
     end
 end
