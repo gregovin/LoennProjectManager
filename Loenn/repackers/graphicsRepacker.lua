@@ -35,7 +35,7 @@ function packer.apply(modname, umap, content_map, topdir)
         if graphicsHandlers[v] then
             graphicsHandlers[v].apply(v, umap, content_map, gpath)
         else
-            graphicsHandlers["xml"].apply(v, umap, content_map, gpath)
+            graphicsHandlers["xmls"].apply(v, umap, content_map, gpath)
         end
     end
 end

@@ -6,7 +6,7 @@ local pluginLoader = require("plugin_loader")
 local configs = require("configs")
 
 local packer = {
-    entry = "xml",
+    entry = "xmls",
     overides = true
 }
 
@@ -42,7 +42,16 @@ pluginLoader.loadPlugins(mods.findPlugins(fileSystem.joinpath("repackers", "Grap
 ---@param content_map {[string|integer]: CMAP}
 ---@param topdir string
 function packer.apply(target, umap, content_map, topdir) ---Apply this packer
-
+    --figure out what the structure looks like
+    if target == "xmls" then
+        --if the graphics level dir is "xmls" we are golden
+    elseif umap[target] then
+        --otherwise the top level dir is username based.
+        --pesimisticly assume that we have the target plus more xml dirs for old usernames that hold both files that are unclaimed and files that are
+        local newuserdir = fileSystem.joinpath(topdir, umap[target])
+        --its still fine to rename imediately to the new username because the only difference between claimed and unclaimed is filename
+        fileSystem.rename(fileSystem.joinpath(topdir, target), newuserdir)
+    end
 end
 
 ---@param h PHook
