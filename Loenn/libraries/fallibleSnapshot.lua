@@ -39,8 +39,8 @@ function fallibleSnapshot.create(description, data, backward, forward)
     end
     local wrappedforward = function(data)
         if data.success then
-            --if the last operation was successful, then call backward
-            data.success, data.fst, data.message = pcall(backward, data)
+            --if the last operation was successful, then call forward
+            data.success, data.fst, data.message = pcall(forward, data)
             if data.success then
                 data.success = data.fst
             end
