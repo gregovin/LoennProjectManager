@@ -16,11 +16,19 @@ function fallibleSnapshot.create(description, data, backward, forward)
     local wrappedBackward = function(data)
         if data.success then
             --if the last operation was successful, then call backward
-            data.success, data.message = pcall(backward, data)
+            data.success, data.fst, data.message = pcall(backward, data)
+            if data.success then
+                data.success = data.fst
+            end
             if not data.success then
                 --if we failed log and notify
-                logging.warning(data.message)
-                notifications.notify(data.message)
+                if (not data.message) then
+                    logging.warning(data.fst)
+                    notifications.notify(data.fst)
+                else
+                    logging.warning(data.message)
+                    notifications.notify(data.message)
+                end
             end
             --return if we succeeded
             return data.success
@@ -32,12 +40,21 @@ function fallibleSnapshot.create(description, data, backward, forward)
     local wrappedforward = function(data)
         if data.success then
             --if the last operation was successful, then call backward
-            data.success, data.message = pcall(forward, data)
+            data.success, data.fst, data.message = pcall(backward, data)
+            if data.success then
+                data.success = data.fst
+            end
             if not data.success then
                 --if we failed log and notify
-                logging.warning(data.message)
-                notifications.notify(data.message)
+                if (not data.message) then
+                    logging.warning(data.fst)
+                    notifications.notify(data.fst)
+                else
+                    logging.warning(data.message)
+                    notifications.notify(data.message)
+                end
             end
+            
             --return if we succeeded
             return data.success
         else
