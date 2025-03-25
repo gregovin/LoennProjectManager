@@ -4,6 +4,7 @@ local utils = require("utils")
 local logging = require("logging")
 local pluginLoader = require("plugin_loader")
 local configs = require("configs")
+local settings= mods.requireFromPlugin("libraries.settings")
 
 local packer = {
     entry = "xmls",
@@ -16,7 +17,7 @@ local packer = {
 ---@field mapTarget string what index in `sideStruct.decode(mapcoder.decodeFile(mapLocation))` needs to be changed when the xml is moved
 ---@field pfunc (fun(string):string)|nil a function that takes the path to the xml file and returns the desired string to write to the map file. Defaults to the relative path from the mod root
 
-local xmlHanders = {} ---@type {[string]: XMLclaim}
+local xmlHandlers = {} ---@type {[string]: XMLclaim}
 
 ---@class XMLReparser
 ---@field kind string what xml to target
@@ -29,7 +30,7 @@ local function xcallback(filename)
     local mod = utils.humanizeVariableName(string.sub(filename, 2, string.find(filename, "/") - 2)):gsub(" Zip", "")
     local handler = utils.rerequire(pathNoExt) ---@type XMLclaim[]
     for _, v in ipairs(handler) do
-        xmlHanders[v.claim] = v
+        xmlHandlers[v.claim] = v
     end
     if configs.debug.logPluginLoading then
         logging.info("Loaded xml claims " .. fileNameNoExt .. " [" .. mod .. "]")
@@ -37,20 +38,29 @@ local function xcallback(filename)
 end
 pluginLoader.loadPlugins(mods.findPlugins(fileSystem.joinpath("repackers", "Graphics", "xml")), nil, xcallback, false)
 
+local xmlTracker = {} ---@type {[string],string}  a map from previous paths to new paths (relative to Graphics)
+
 ---@param target string
 ---@param umap {[string]: string}
 ---@param content_map {[string|integer]: CMAP}
 ---@param topdir string
 function packer.apply(target, umap, content_map, topdir) ---Apply this packer
-    --figure out what the structure looks like
-    if target == "xmls" then
-        --if the graphics level dir is "xmls" we are golden
-    elseif umap[target] then
-        --otherwise the top level dir is username based.
-        --pesimisticly assume that we have the target plus more xml dirs for old usernames that hold both files that are unclaimed and files that are
-        local newuserdir = fileSystem.joinpath(topdir, umap[target])
-        --its still fine to rename imediately to the new username because the only difference between claimed and unclaimed is filename
-        fileSystem.rename(fileSystem.joinpath(topdir, target), newuserdir)
+    --our target structure is xmls/username/campaignname/file
+    --however this may be different in reality
+    if fileSystem.isFile(fileSystem.joinpath(topdir, target)) and xmlHandlers[fileSystem.stripExtension(target)] then --in this case the top level dir an xml file that we can handle
+        
+        if #settings.get("campaigns",{},"recentProjectInfo") ~=1 then
+            return --if there is more than one campaign, give up
+        end
+        --make sure we have a path for the loose xml
+        local cmap = content_map[settings.get("campaigns",{},"recentProjectInfo")[1]]
+        local newuser
+        for _,v in pairs(umap) do
+            newuser=v
+        end
+        local target_path = fileSystem.joinpath(topdir,"xmls",newuser,cmap.newName)
+        fileSystem.rename(fileSystem.joinpath(topdir,target),fileSystem.joinpath(target_path,target))
+        xmlTracker[target]=fileSystem.joinpath(target_path,target)
     end
 end
 
