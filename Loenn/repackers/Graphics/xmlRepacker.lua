@@ -5,6 +5,7 @@ local logging = require("logging")
 local pluginLoader = require("plugin_loader")
 local configs = require("configs")
 local settings= mods.requireFromPlugin("libraries.settings")
+local filehelper = mods.requireFromPlugin("libraries.filesystemHelper")
 
 local packer = {
     entry = "xmls",
@@ -36,9 +37,9 @@ local function xcallback(filename)
         logging.info("Loaded xml claims " .. fileNameNoExt .. " [" .. mod .. "]")
     end
 end
-pluginLoader.loadPlugins(mods.findPlugins(fileSystem.joinpath("repackers", "Graphics", "xml")), nil, xcallback, false)
 
-local xmlTracker = {} ---@type {[string],string}  a map from previous paths to new paths (relative to Graphics)
+
+local xmlTracker = {} ---@type {[string]: string}  a map from previous paths to new paths (relative to Graphics)
 
 ---@param target string
 ---@param umap {[string]: string}
@@ -47,7 +48,7 @@ local xmlTracker = {} ---@type {[string],string}  a map from previous paths to n
 function packer.apply(target, umap, content_map, topdir) ---Apply this packer
     --our target structure is xmls/username/campaignname/file
     --however this may be different in reality
-    if fileSystem.isFile(fileSystem.joinpath(topdir, target)) and xmlHandlers[fileSystem.stripExtension(target)] then --in this case the top level dir an xml file that we can handle
+    if fileSystem.isFile(fileSystem.joinpath(topdir, target)) and xmlHandlers[fileSystem.stripExtension(target)] and fileSystem.fileExtension(target)=="xml" then --in this case the top level dir an xml file that we can handle
         
         if #settings.get("campaigns",{},"recentProjectInfo") ~=1 then
             return --if there is more than one campaign, give up
@@ -59,9 +60,19 @@ function packer.apply(target, umap, content_map, topdir) ---Apply this packer
             newuser=v
         end
         local target_path = fileSystem.joinpath(topdir,"xmls",newuser,cmap.newName)
-        fileSystem.rename(fileSystem.joinpath(topdir,target),fileSystem.joinpath(target_path,target))
-        xmlTracker[target]=fileSystem.joinpath(target_path,target)
+        local un_target = filehelper.getUniqueName(target_path, target)
+        fileSystem.rename(fileSystem.joinpath(topdir,target),fileSystem.joinpath(target_path,un_target))
+        xmlTracker[target]=fileSystem.joinpath(target_path,un_target)
+        return --enforce being done
+    elseif not (umap[target] or content_map[target] or target=="xml") or not fileSystem.isDirectory(topdir,target) then
+        return
     end
+    --look for files anywhere in xmls/uname/cname/
+    local potential_xmls = filehelper.findRecFiles(fileSystem.joinpath(target),2)
+    local definite_targets = $(potential_xmls):filter(function (_idx, pth)
+        return xmlHandlers[fileSystem.stripExtension(fileSystem.filename(pth))] and fileSystem.fileExtension(pth)=="xml"
+    end)()
+    
 end
 
 ---@param h PHook
@@ -71,5 +82,7 @@ function packer.addHook(h)
     xmlReparsers[c.kind] = xmlReparsers[c.kind] or {}
     table.insert(xmlReparsers[c.kind], c.apply)
 end
-
+function packer.init()
+    pluginLoader.loadPlugins(mods.findPlugins(fileSystem.joinpath("repackers", "Graphics", "xml")), nil, xcallback, false)
+end
 return packer

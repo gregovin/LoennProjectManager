@@ -3,11 +3,16 @@ local pUtils = mods.requireFromPlugin("libraries.projectUtils")
 local fileSystem = require("utils.filesystem")
 local fileLocations = require("file_locations")
 local tempfolder = fileSystem.joinpath(fileLocations.getStorageDir(), "LPMTemp")
-
+local sideStruct = require("structs.side")
+local yaml = require("lib.yaml")
+local mapcoder = require("mapcoder")
+local utils = require("utils")
 local packer = {
     entry = "maps",
     overides = true,
 }
+local mapconthooks ={} ---@type [fun (mapt: table, oldcamp: string, oldmap: string, mp: CMAP)]
+local ymlhooks = {} ---@type [fun (ymlt: table, oldcamp: string, oldmap: string, mp: CMAP)]
 ---Apply this repacker
 ---@param modname string the name of the mod
 ---@param umap {[string]: string} a single element table with umap[currentUsername]=newUsername
@@ -68,18 +73,34 @@ function packer.apply(modname, umap, content_map, topdir)
                     if fileSystem.isFile(oldmap) and content_map[cname].mapMap[mapname] then
                         --do the remapping
                         --Put the new file in the temp folder to allow file swapping
+                        local newmap=fileSystem.joinpath(tempfolder, "maps", content_map[cname].mapMap[mapname] .. ".bin")
                         fileSystem.rename(oldmap,
-                            fileSystem.joinpath(tempfolder, "maps", content_map[cname].mapMap[mapname] .. ".bin"))
+                            newmap)
+                        local s=sideStruct.decode(mapcoder.decodeFile(newmap))
+                        for _,h in ipairs(mapconthooks) do
+                            h(s, cname, mapname, content_map)
+                        end
                         --if we have a meta.yaml file for it also map that
                         local oldyml = fileSystem.joinpath(olditem, mapname .. ".meta.yaml")
+                        local newyml=fileSystem.joinpath(tempfolder, "maps",
+                            content_map[cname].mapMap[mapname] .. ".meta.yaml")
                         if fileSystem.isFile(oldyml) then
                             fileSystem.rename(oldyml,
-                                fileSystem.joinpath(tempfolder, "maps",
-                                    content_map[cname].mapMap[mapname] .. ".meta.yaml"))
+                                newyml)
+                            local content = utils.readAll(newyml)
+                            local y=yaml.read(utils.stripByteOrderMark(content))
+                            for _,h in ipairs(ymlhooks) do
+                                h(y,cname, mapname, content_map)
+                            end
                         end
+                        
+                    else
+                        fileSystem.rename(oldmap, fileSystem.joinpath(tempfolder,"maps",mapf))
                     end
                 end
                 fileSystem.rename(fileSystem.joinpath(tempfolder, "maps"), newcamp)
+            else
+                fileSystem.rename(olditem,fileSystem.joinpath(tempfolder, "campaigns",cname))
             end
         elseif content_map[0] then --if the item is a file, then it belongs to a degenerate campaign which has sentinel key 0
             local mapname = fileSystem.stripExtension(cname)
@@ -87,16 +108,39 @@ function packer.apply(modname, umap, content_map, topdir)
             if content_map[0].mapMap[mapname] then
                 local newcamp = fileSystem.joinpath(tempfolder, "campaigns", content_map[0].newName)
                 fileSystem.mkpath(newcamp)
-                fileSystem.rename(olditem, fileSystem.joinpath(newcamp, content_map[0].mapMap[mapname] .. ".bin"))
+                local newmap =fileSystem.joinpath(newcamp, content_map[0].mapMap[mapname] .. ".bin")
+                fileSystem.rename(olditem, newmap)
+                local s=sideStruct.decode(mapcoder.decodeFile(newmap))
+                for _,h in ipairs(mapconthooks) do
+                    h(s, cname, mapname, content_map)
+                end
                 local oldyml = fileSystem.joinpath(newcamp, mapname .. ".meta.yaml")
                 if fileSystem.isFile(oldyml) then
-                    fileSystem.rename(oldyml,
-                        fileSystem.joinpath(newcamp, content_map[cname].mapMap[mapname] .. ".meta.yaml"))
+                    local newyml=fileSystem.joinpath(newcamp, content_map[0].mapMap[mapname] .. ".meta.yaml")
+                    fileSystem.rename(oldyml,newyml)
+                    local content = utils.readAll(newyml)
+                    local y=yaml.read(utils.stripByteOrderMark(content))
+                    for _,h in ipairs(ymlhooks) do
+                        h(y,cname, mapname, content_map)
+                    end
                 end
+            else
+                local newcamp = fileSystem.joinpath(tempfolder, "campaigns", content_map[0].newName)
+                fileSystem.mkpath(newcamp)
+                fileSystem.rename(olditem,fileSystem.joinpath(newcamp,cname))
             end
         end
     end
     fileSystem.rename(fileSystem.joinpath(tempfolder, "campaigns"), newuserdir) --move the campaigns back into the mod
 end
-
+---Add a hook to this packer
+---@param h PHook
+---@return PHook? up if the hook applies to a parent, do so there
+function packer.addHook(h)
+    if h.target and #h.target==1 then
+        table.insert(ymlhooks,h.content)
+    else
+        table.insert(mapconthooks, h.content)
+    end
+end
 return packer

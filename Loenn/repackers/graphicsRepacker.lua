@@ -28,7 +28,7 @@ local function gcallback(filename)
         end
     end
 end
-pluginLoader.loadPlugins(mods.findPlugins(fileSystem.joinpath("repackers", "Graphics")), nil, gcallback, false)
+
 function packer.apply(modname, umap, content_map, topdir)
     local gpath = fileSystem.joinpath(topdir, "Graphics")
     for _, v in ipairs(pUtils.list_dir(gpath)) do
@@ -55,20 +55,22 @@ function packer.addHook(h)
         end
     end
 end
-
-for _, v in pairs(graphicsHandlers) do
-    if v.hooks then
-        local outhooks = {}
-        for _, h in ipairs(v.hooks) do
-            local co = graphicsHandlers.addHook(h)
-            if co then table.insert(outhooks, co) end
+function packer.init()
+    pluginLoader.loadPlugins(mods.findPlugins(fileSystem.joinpath("repackers", "Graphics")), nil, gcallback, false)
+    for _, v in pairs(graphicsHandlers) do
+        if v.init then
+            v.init()
         end
-        if #outhooks > 0 then
+    end
+    for _, v in pairs(graphicsHandlers) do
+        if v.hooks then
             packer.hooks = packer.hooks or {}
-            for i = 1, #outhooks do
-                packer.hooks[#packer.hooks + 1] = outhooks[i]
+            for _, h in ipairs(v.hooks) do
+                local co = graphicsHandlers.addHook(h)
+                if co then table.insert(packer.hooks, co) end
             end
         end
     end
 end
+
 return packer ---@type Packer

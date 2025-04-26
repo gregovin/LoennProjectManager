@@ -32,6 +32,9 @@ end
 local function init()
     repackers = {}
     pluginLoader.loadPlugins(mods.findPlugins("repackers"), nil, rcallback, false)
+    for _, v in pairs(repackers) do
+        utils.callIfFunction(v.init)
+    end
     for _,v in pairs(repackers) do
         if v.hooks then
             for _,h in ipairs(v.hooks) do

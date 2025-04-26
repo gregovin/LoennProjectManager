@@ -47,7 +47,7 @@ local function flcallback(filename)
         end
     end
 end
-pluginLoader.loadPlugins(eyml_filenames, nil, flcallback, false)
+
 local target_pattern = ""
 ---@class CMAP
 ---@field newName string the new campaign name
@@ -69,7 +69,10 @@ function packer.apply(modname, umap, content_map, topdir)
     end
     yaml.write(ymlpth, ymlconts)
 end
-
+---Initialize this packer
+function packer.init()
+    pluginLoader.loadPlugins(eyml_filenames, nil, flcallback, false)
+end
 ---Add a hook to this packer
 ---@param h PHook
 ---@return PHook? up if the hook applies to a parent, do so there
