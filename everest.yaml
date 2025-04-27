@@ -1,5 +1,5 @@
 - Name: LoennProjectManager
-  Version: 0.4.2
+  Version: 0.4.3
   Dependencies:
       - Name: Everest
         Version: 1.3650.0
