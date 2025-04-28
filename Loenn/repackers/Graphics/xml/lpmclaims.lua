@@ -2,15 +2,15 @@
 local claims = {
     {
         claim = "ForegroundTiles",
-        mapTarget = "meta.ForegroundTiles"
+        mapTarget = {"meta","ForegroundTiles"}
     },
     {
         claim = "BackgroundTiles",
-        mapTarget = "meta.BackgroundTiles"
+        mapTarget = {"meta","BackgroundTiles"}
     },
     {
-        claim = "AnimatedTilesets",
-        mapTarget = "meta.AnimatedTiles"
+        claim = "AnimatedTiles",
+        mapTarget = {"meta","AnimatedTiles"}
     }
 }
 

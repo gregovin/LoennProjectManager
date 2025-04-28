@@ -11,8 +11,8 @@ local packer = {
     entry = "maps",
     overides = true,
 }
-local mapconthooks ={} ---@type [fun (mapt: table, oldcamp: string, oldmap: string, mp: CMAP)]
-local ymlhooks = {} ---@type [fun (ymlt: table, oldcamp: string, oldmap: string, mp: CMAP)]
+local mapconthooks ={} ---@type [fun (mapt: table, umap: {[string]: string}, oldcamp: string|integer, oldmap: string, mp: {[string|integer]: CMAP})]
+local ymlhooks = {} ---@type [fun (ymlt: table, umap: {[string]: string}, oldcamp: string|integer, oldmap: string, mp: {[string|integer]: CMAP})]
 ---Apply this repacker
 ---@param modname string the name of the mod
 ---@param umap {[string]: string} a single element table with umap[currentUsername]=newUsername
@@ -78,8 +78,9 @@ function packer.apply(modname, umap, content_map, topdir)
                             newmap)
                         local s=sideStruct.decode(mapcoder.decodeFile(newmap))
                         for _,h in ipairs(mapconthooks) do
-                            h(s, cname, mapname, content_map)
+                            h(s, umap, cname, mapname, content_map)
                         end
+                        mapcoder.encodeFile(newmap, sideStruct.encode(s))
                         --if we have a meta.yaml file for it also map that
                         local oldyml = fileSystem.joinpath(olditem, mapname .. ".meta.yaml")
                         local newyml=fileSystem.joinpath(tempfolder, "maps",
@@ -90,8 +91,9 @@ function packer.apply(modname, umap, content_map, topdir)
                             local content = utils.readAll(newyml)
                             local y=yaml.read(utils.stripByteOrderMark(content))
                             for _,h in ipairs(ymlhooks) do
-                                h(y,cname, mapname, content_map)
+                                h(y,umap, cname, mapname, content_map)
                             end
+                            yaml.wirte(newyml,y)
                         end
                         
                     else
@@ -112,8 +114,9 @@ function packer.apply(modname, umap, content_map, topdir)
                 fileSystem.rename(olditem, newmap)
                 local s=sideStruct.decode(mapcoder.decodeFile(newmap))
                 for _,h in ipairs(mapconthooks) do
-                    h(s, cname, mapname, content_map)
+                    h(s, umap, 0, mapname, content_map)
                 end
+                mapcoder.encodeFile(newmap, sideStruct.encode(s))
                 local oldyml = fileSystem.joinpath(newcamp, mapname .. ".meta.yaml")
                 if fileSystem.isFile(oldyml) then
                     local newyml=fileSystem.joinpath(newcamp, content_map[0].mapMap[mapname] .. ".meta.yaml")
@@ -121,8 +124,9 @@ function packer.apply(modname, umap, content_map, topdir)
                     local content = utils.readAll(newyml)
                     local y=yaml.read(utils.stripByteOrderMark(content))
                     for _,h in ipairs(ymlhooks) do
-                        h(y,cname, mapname, content_map)
+                        h(y,umap, 0, mapname, content_map)
                     end
+                    yaml.wirte(newyml,y)
                 end
             else
                 local newcamp = fileSystem.joinpath(tempfolder, "campaigns", content_map[0].newName)
