@@ -104,16 +104,20 @@ function packer.apply(target, umap, content_map, topdir) ---Apply this packer
             applyreparsers(next, newpath, umap,settings.get("campaigns",{0},"recentProjectInfo")[1], content_map)
         end
         return --enforce being done
-    elseif not (umap[target] or content_map[target] or target=="xml") or not fileSystem.isDirectory(topdir,target) then
+    elseif not fileSystem.isDirectory(topdir,target) then
         return
     end
-    --look for files anywhere in xmls/uname/cname/
+    if target=="xmls" or target=="xml" then
+        
+    elseif umap[target] then
+
+    elseif content_map[target] then
     
-    
+    end
 end
 
 ---@param h PHook
----@return PHook?
+---@---@return PHook?
 function packer.addHook(h)
     local c = h.content --[[@as XMLReparser]]
     xmlReparsers[c.kind] = xmlReparsers[c.kind] or {}
