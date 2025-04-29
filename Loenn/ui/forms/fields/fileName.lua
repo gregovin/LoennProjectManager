@@ -15,7 +15,7 @@ function fileName.getElement(name, value, options)
         return s:match("^%s*(.-)%s*$")
     end
     options.validator = function(v)
-        if #v == 0 then return true end
+        if #v == 0 then return not options.requireVal end
         for i, s in ipairs(reserved) do
             if s == string.upper(v) then return false end
         end
