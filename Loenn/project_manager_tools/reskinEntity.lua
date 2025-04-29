@@ -138,6 +138,11 @@ function script.run(args)
                         local newname = bn .. string.format("%02d.png",i)
                         fileSystem.rename(v,fileSystem.joinpath(ts,newname))
                     end
+                    for _,v in ipairs(pUtils.list_dir(tdir)) do
+                        if string.find(v,bn.."%d%d.png") then
+                            fileSystem.remove(fileSystem.joinpath(tdir,v))
+                        end
+                    end
                     for _,v in ipairs(pUtils.list_dir(ts)) do
                         fileSystem.rename(fileSystem.joinpath(ts,v),fileSystem.joinpath(tdir,v))
                     end
@@ -163,6 +168,11 @@ function script.run(args)
                     for i,v in ipairs(args.files) do
                         local newname = bn .. string.format("%02d.png",i)
                         fileSystem.rename(v,fileSystem.joinpath(ts,newname))
+                    end
+                    for _,v in ipairs(pUtils.list_dir(tdir)) do
+                        if string.find(v,bn.."%d%d.png") then
+                            fileSystem.remove(fileSystem.joinpath(tdir,v))
+                        end
                     end
                     for _,v in ipairs(pUtils.list_dir(ts)) do
                         fileSystem.rename(fileSystem.joinpath(ts,v),fileSystem.joinpath(tdir,v))
@@ -196,7 +206,90 @@ function script.run(args)
             end
         else
             --allow_many=true,multifile=false
-            
+            local tdir = fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Gameplay")
+            if reskinners[args.entity].append_mod_info then
+                tdir = fileSystem.joinpath(tdir,reskinners[args.entity].target_dir,projectDetails.username,projectDetails.campaign) 
+            else
+                tdir = fileSystem.joinpath(tdir,projectDetails.username,projectDetails.campaign,reskinners[args.entity].target_dir)
+            end
+            local skns = pUtils.list_dir(tdir)
+            if args.edit and #skns>1 then
+                script.nextScript.parameters.options = skns[1]
+                script.nextScript.tooltips.options = "Which reskin to edit"
+                script.nextScript.fieldInformation.options = {
+                    fieldType = "string",
+                    options = {},
+                    editable=false
+                }
+                for _,v in pairs(skns) do
+                    table.insert(script.nextScript.fieldInformation.options.options,
+                        {fileSystem.stripExtension(v),v}
+                    )
+                end
+                script.nextScript.nextScript={
+                    name = "Reskin3",
+                    displayName = "Edit ".. args.entity.. " Reskin",
+                    tooltip = "Edit the image for a specific reskin",
+                    verb = "accept",
+                    paramaters = {},
+                    tooltips = {file = "the files to use"},
+                    fieldInformation={file = {
+                        fieldType = "loennProjectManager.filePath",
+                        extension = "png"
+                    }}
+                }
+                function script.nextScript.run(args)
+                    script.nextScript.nextScript.paramaters.file=fileSystem.joinpath(tdir,args.options)
+                end
+                function script.nextScript.nextScript.run(args)
+                    fileSystem.rename(args.file,script.nextScript.nextScript.paramaters.file)
+                end
+            elseif args.edit and #skns==1 then
+                script.nextScript={
+                    name="Reskin2",
+                    displayName="Edit "..args.entity.." Reskin",
+                    tooltip="Edit the image for a specific reskin",
+                    verb="accept",
+                    paramaters={file=fileSystem.joinpath(tdir,skns[1])},
+                    tooltips = {file = "the files to use"},
+                    fieldInformation={file = {
+                        fieldType = "loennProjectManager.filePath",
+                        extension = "png"
+                    }}
+                }
+                function script.nextScript.run(args)
+                    fileSystem.rename(args.file,script.nextScript.paramaters.file)
+                end
+            else
+                script.nextScript={
+                    name="Reskin2",
+                    displayName="New "..args.entity.." reskin",
+                    tooltip="Create a new reskin for the selected entity",
+                    verb="create",
+                    paramaters = {
+                        file = "",
+                        baseName=""
+                    },
+                    tooltips={
+                        file="The file to use",
+                        baseName="The name to select."
+                    },
+                    fieldInformation={
+                        file={
+                            fieldType="loennProjectManager.filePath",
+                            extension="png"
+                        },
+                        baseName={
+                            fieldType="loennProjectManager.fileName",
+                            requireVal=true
+                        }
+                    }
+                }
+                function script.run(args)
+                    
+                    fileSystem.rename(args.file,fileSystem.joinpath(tdir,args.baseName))
+                end
+            end
         end
     end
 end
