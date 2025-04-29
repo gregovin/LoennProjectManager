@@ -80,14 +80,17 @@ function script.run(args)
     script.nextScript.parameters = {}
     script.nextScript.tooltips = {}
     script.nextScript.fieldInformation = {}
+    local tdir = fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Gameplay")
+    if reskinners[args.entity].append_mod_info then
+        tdir = fileSystem.joinpath(tdir,reskinners[args.entity].target_dir,projectDetails.username,projectDetails.campaign) 
+    else
+        tdir = fileSystem.joinpath(tdir,projectDetails.username,projectDetails.campaign,reskinners[args.entity].target_dir)
+    end
+    fileSystem.mkpath(tdir)
+    local ts = fileSystem.joinpath(tempfolder,"reskin")
+    fileSystem.mkpath(ts)
     if reskinners[args.entity].allow_many then
         if reskinners[args.entity].multifile then
-            local tdir = fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Gameplay")
-            if reskinners[args.entity].append_mod_info then
-                tdir = fileSystem.joinpath(tdir,reskinners[args.entity].target_dir,projectDetails.username,projectDetails.campaign) 
-            else
-                tdir = fileSystem.joinpath(tdir,projectDetails.username,projectDetails.campaign,reskinners[args.entity].target_dir)
-            end
             local skns = pUtils.list_dir(tdir)
             table.sort(skns, function (a, b)
                 return #a<#b or (#a==#b and a<b)
@@ -132,8 +135,6 @@ function script.run(args)
                 end
                 function script.nextScript.nextScript.run(args)
                     local bn = script.nextScript.nextScript.bn
-                    local ts = fileSystem.joinpath(tempfolder,"reskin")
-                    fileSystem.mkpath(ts)
                     for i,v in ipairs(args.files) do
                         local newname = bn .. string.format("%02d.png",i)
                         fileSystem.rename(v,fileSystem.joinpath(ts,newname))
@@ -163,8 +164,6 @@ function script.run(args)
                 end
                 function script.nextScript.run(args)
                     local bn = bns[1]
-                    local ts = fileSystem.joinpath(tempfolder,"reskin")
-                    fileSystem.mkpath(ts)
                     for i,v in ipairs(args.files) do
                         local newname = bn .. string.format("%02d.png",i)
                         fileSystem.rename(v,fileSystem.joinpath(ts,newname))
@@ -194,8 +193,7 @@ function script.run(args)
                 }
                 script.nextScript.verb="Add"
                 function script.nextScript.run(args)
-                    local ts = fileSystem.joinpath(tempfolder,"reskin")
-                    fileSystem.mkpath(ts)
+                    
                     for i,v in ipairs(args.files) do
                         fileSystem.rename(v,fileSystem.joinpath(ts, args.baseName..string.format("%02d.png",i)))
                     end
@@ -206,12 +204,7 @@ function script.run(args)
             end
         else
             --allow_many=true,multifile=false
-            local tdir = fileSystem.joinpath(modsDir,projectDetails.name,"Graphics","Atlases","Gameplay")
-            if reskinners[args.entity].append_mod_info then
-                tdir = fileSystem.joinpath(tdir,reskinners[args.entity].target_dir,projectDetails.username,projectDetails.campaign) 
-            else
-                tdir = fileSystem.joinpath(tdir,projectDetails.username,projectDetails.campaign,reskinners[args.entity].target_dir)
-            end
+            
             local skns = pUtils.list_dir(tdir)
             if args.edit and #skns>1 then
                 script.nextScript.parameters.options = skns[1]
@@ -288,6 +281,57 @@ function script.run(args)
                 function script.run(args)
                     
                     fileSystem.rename(args.file,fileSystem.joinpath(tdir,args.baseName))
+                    
+                end
+            end
+        end
+    else
+        if reskinners[args.entity].multifile then
+            script.nextScript.paramaters.files={}
+            for _,v in pairs(pUtils.list_dir(tdir)) do
+                table.insert(script.nextScript.paramaters.files, fileSystem.joinpath(tdir,v))
+            end
+            script.nextScript.tooltips.files="The files to use for this reskin"
+            script.nextScript.fieldInformation.files={
+                fieldType="loennProjectManager.filePathList",
+                extension="png"
+            }
+            function script.nextScript.run(args2)
+                for i,v in ipairs(args2.files) do
+                    fileSystem.rename(v,fileSystem.joinpath(ts,reskinners[args.entity].effects_entity..string.format("%02d.png",i)))
+                end
+                os.remove(tdir)
+                fileSystem.rename(ts,tdir)
+                local apl= reskinners[args.entity].apply or function (path,pdetails)
+                    
+                end
+                if #args2.files==0 then
+                    apl(nil,projectDetails)
+                else
+                    apl(fileSystem.joinpath(tdir,reskinners[args.entity].effects_entity.."00.png"),projectDetails)
+                end
+            end
+        else
+            local ls = pUtils.list_dir(tdir)
+            script.nextScript.paramaters.file=(ls[1] and fileSystem.joinpath(tdir,ls[1])) or ""
+            script.nextScript.tooltips.file="The file to use for this skin"
+            script.nextScript.fieldInformation.file={
+                fieldType="loennProjectManager.nullableFilePath",
+                extension="png"
+            }
+            function script.nextScript.run(args2)
+                local apl= reskinners[args.entity].apply or function (path,pdetails)
+                    
+                end
+                if args2.file=="" then
+                    if script.nextScript.paramaters.file ~="" then fileSystem.remove(script.nextScript.paramaters.file) end 
+                    apl(nil,projectDetails)
+                else
+                    fileSystem.rename(args2.file,fileSystem.joinpath(ts,reskinners[args.entity].effects_entity..".png"))
+                    if script.nextScript.paramaters.file ~="" then fileSystem.remove(script.nextScript.paramaters.file) end 
+                    fileSystem.rename(fileSystem.joinpath(ts,reskinners[args.entity].effects_entity..".png"),
+                        fileSystem.joinpath(tdir,reskinners[args.entity].effects_entity..".png"))
+                    apl(fileSystem.joinpath(tdir,reskinners[args.entity].effects_entity..".png"),projectDetails)
                 end
             end
         end
