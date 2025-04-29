@@ -243,10 +243,8 @@ function metadataHandler.readMetadata(projectDetails)
     local checkTargets = { order .. name, order .. "A-" .. name, order .. name .. "-A" } --list potential A-side meta.yaml names
     local fLocal = fileSystem.joinpath(modsDir, projectDetails.name, "Maps", projectDetails.username,
         projectDetails.campaign)
-
-    local location
     for _, target in ipairs(checkTargets) do
-        location = fileSystem.joinpath(fLocal, target .. ".meta.yaml")
+        local location = fileSystem.joinpath(fLocal, target .. ".meta.yaml")
         if fileSystem.isFile(location) then
             --if there is already a .meta.yaml, then read its data
             logging.info("[Loenn Project Manager] Reading meta.yaml at " .. location)
@@ -272,7 +270,7 @@ function metadataHandler.readMetadata(projectDetails)
     end
     if fileSystem.isDirectory(fLocal) then
         --if the folder exists then we can write to the location with no problems
-        metadataHandler.loadedFile = location
+        metadataHandler.loadedFile = order .. name
         metadataHandler.loadedData = {}
     else
         --otherwise there cannot be a map this metadata is for so we have a problem
