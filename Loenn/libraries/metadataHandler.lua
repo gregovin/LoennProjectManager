@@ -267,11 +267,16 @@ function metadataHandler.readMetadata(projectDetails)
             end
             return
         end
+        local ml = fileSystem.joinpath(fLocal,target..".bin")
+        if fileSystem.isFile(ml) then
+            metadataHandler.loadedFile=location
+            metadataHandler.loadedData={}
+            return
+        end
     end
     if fileSystem.isDirectory(fLocal) then
-        --if the folder exists then we can write to the location with no problems
-        metadataHandler.loadedFile = order .. name
-        metadataHandler.loadedData = {}
+        metadataHandler.loadedFile=fileSystem.joinpath(fLocal,order..name..".meta.yaml")
+        metadataHandler.loadedData={}
     else
         --otherwise there cannot be a map this metadata is for so we have a problem
         error("Bad project details! Map directory " .. fLocal .. " does not exist")
