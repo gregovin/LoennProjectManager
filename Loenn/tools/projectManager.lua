@@ -23,9 +23,9 @@ tool.image = nil
 tool.layer = "project"
 tool.validLayers = {
     "project",
-    "foreground",
-    "background",
-    "metadata"
+    "tilesets",
+    "metadata",
+    "other"
 }
 
 -- the positions of all currently active scripts (aka those with the property window open), used for rendering previews
@@ -45,10 +45,9 @@ local scriptLocationPreviewColors = {
 function tool.reset(load)
     tool.currentScript = ""
     tool.scriptsAvailable = {}
-    tool.scriptsAvailable["project"] = {}
-    tool.scriptsAvailable["foreground"] = {}
-    tool.scriptsAvailable["background"] = {}
-    tool.scriptsAvailable["metadata"] = {}
+    for _,v in ipairs(tool.validLayers) do
+        tool.scriptsAvailable[v]={}
+    end
     tool.scripts = {}
     safeDelete.startup()
     if load then

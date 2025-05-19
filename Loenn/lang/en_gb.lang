@@ -2,9 +2,9 @@ mods.LoennProjectManager.name=Loenn Project Manager
 
 tools.name.project_manager=Project Manager
 layers.name.project=Management
-layers.name.foreground=Fg Tiles
-layers.name.background=Bg Tiles
+layers.name.tilesets=Tiles
 layers.name.metadata=Metadata
+layers.name.other=Other
 
 ui.metadata_screen_window.preview.unknown_texture=Unknown Texture
 ui.metadata_screen_window.preview.no_preview=No Preview
