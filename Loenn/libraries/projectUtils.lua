@@ -157,5 +157,14 @@ function pUtils.isPng(path)
     return header == pngStartConstant, string.format("%s is a fake png, failed to import", path),
         "Tileset is a fake png. Ask the discord for assistance"
 end
-
+---Determine if a list of table contains an item
+---@param tbl table
+---@param item any
+---@return boolean
+function pUtils.contains(tbl, item)
+    for _,v in ipairs(tbl) do
+        if v==item then return true end
+    end
+    return false
+end
 return pUtils

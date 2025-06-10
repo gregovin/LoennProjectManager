@@ -341,7 +341,8 @@ metadataHandler.defaults = {
         ["BackgroundMusic"] = "",
         ["BackgroundAmbience"] = "",
         ["BackgroundMusicParams"] = {},
-        ["BackgroundAmbienceParams"] = {}
+        ["BackgroundAmbienceParams"] = {},
+        ["MarkerTexture"]="marker/runBackpack"
     },
     ["CompleteScreen"] = {
         ["Start"] = { 0.0, 0.0 },
