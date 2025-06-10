@@ -139,9 +139,7 @@ function detailScript.prerun()
     local projectDetails = pUtils.getProjectDetails()
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
         projectLoader.assertStateValid(projectDetails)
-        if not projectLoader.cacheValid then
-            projectLoader.loadMetadataDetails(projectDetails)
-        end
+        projectLoader.cache:get("metadata")
         detailScript.parameters.idlePosition = metadataHandler.getNestedValue({ "Mountain", "Idle", "Position" }) or
             { 0.0, 0.0, 0.0 }
         detailScript.parameters.idleTarget = metadataHandler.getNestedValue({ "Mountain", "Idle", "Target" }) or

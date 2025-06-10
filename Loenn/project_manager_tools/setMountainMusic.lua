@@ -53,9 +53,7 @@ function script.prerun()
     local projectDetails = pUtils.getProjectDetails()
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
         projectLoader.assertStateValid(projectDetails)
-        if not projectLoader.cacheValid then
-            projectLoader.loadMetadataDetails(projectDetails)
-        end
+        projectLoader.cache:get("metadata")
         script.parameters.backgroundMusic = metadataHandler.getNestedValueOrDefault({ "Mountain", "BackgroundMusic" })
         script.parameters.backgroundAmbience = metadataHandler.getNestedValueOrDefault({ "Mountain", "BackgroundAmbience" })
         local musicParams = metadataHandler.getNestedValueOrDefault({ "Mountain", "BackgroundMusicParams" })

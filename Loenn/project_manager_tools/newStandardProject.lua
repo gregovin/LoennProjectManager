@@ -64,6 +64,7 @@ function script.run(args)
         target = fileSystem.joinpath(target, args.mapIdentifier .. ".bin")
         mapcoder.encodeFile(target, mapStruct.encode(emptyMap)) -- May fail silently?
         state.loadFile(target)
+        projectLoader.loadMetadataDetails({name=args.mapIdentifier, username=args.username, campaign=args.campaignName, map=args.mapIdentifier})
     else
         notifications.notify("Could not create project due to filesystem error", 10)
         logging.warning(string.format("Failed to create project %s due to the following error:\n%s", args.modIdentifier,

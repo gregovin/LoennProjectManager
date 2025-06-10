@@ -69,7 +69,7 @@ function script.prerun()
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
         projectLoader.assertStateValid(projectDetails)
         if not projectLoader.cacheValid then
-            projectLoader.loadMetadataDetails(projectDetails)
+            projectLoader.cache:get("metadata")
             script.fieldInformation.markerIcon.options={"marker/Fall","marker/runBackpack", "marker/runNoBackpack"}
             local searchpath = fileSystem.joinpath(modsDir, projectDetails.name,"Graphics","Atlases","Mountain","marker",projectDetails.username,projectDetails.campaign)
             if fileSystem.isDirectory(searchpath) then

@@ -41,6 +41,8 @@ function script.run(args)
     local maps = ($(pUtils.list_dir(target)):map(file->(fileSystem.stripExtension(file))))()
     settings.set("maps", maps, "recentProjectInfo")
     settings.set("recentmap", fileSystem.stripExtension(srelpath[5]), "recentProjectInfo")
+    local details = {name = settings.get("name", nil, "recentProjectInfo"), username = settings.get("username"), campaign = settings.get("SelectedCampaign", nil, "recentProjectInfo"), map=settings.get("recentmap", nil, "recentProjectInfo")}
+    projectLoader.loadMetadataDetails(details)
     notifications.notify("project synced")
 end
 

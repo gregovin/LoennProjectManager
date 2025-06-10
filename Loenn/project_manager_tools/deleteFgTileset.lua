@@ -39,9 +39,7 @@ function script.prerun()
     local projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
-        if not projectLoader.cacheValid then
-            projectLoader.loadMetadataDetails(projectDetails)
-        end
+        projectLoader.cache:get("tiles")
         local topts = {}
         for k, v in pairs(tilesetHandler.getTilesets(true)) do
             if not (tilesetHandler.isVanilla(v.path) or (v.used and v.used > 0)) then

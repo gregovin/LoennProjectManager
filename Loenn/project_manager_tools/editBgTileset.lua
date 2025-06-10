@@ -75,9 +75,7 @@ function prescript.prerun()
     projectDetails = pUtils.getProjectDetails()
     projectLoader.assertStateValid(projectDetails)
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
-        if not projectLoader.cacheValid then
-            projectLoader.loadMetadataDetails(projectDetails)
-        end
+        projectLoader.cache:get("tiles")
         local tops = {}
         for name, t in pairs(tilesetHandler.bgTilesets) do
             if not tilesetHandler.isVanilla(t.path) then

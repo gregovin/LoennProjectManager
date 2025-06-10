@@ -10,6 +10,7 @@ local p_utils = mods.requireFromPlugin("libraries.projectUtils")
 local tilesetHandler = mods.requireFromPlugin("libraries.tilesetHandler")
 local metadataHandler = mods.requireFromPlugin("libraries.metadataHandler")
 local fileLocations = require("file_locations")
+local cacheLib= mods.requireFromPlugin("libraries.cachelib")
 
 local modsDir = fileSystem.joinpath(fileLocations.getCelesteDir(), "Mods")
 
@@ -76,6 +77,8 @@ function loaders.newMap(mapLocation, projectDetails)
     --make sure we update the state
     settings.set("recentmap", mapName, "recentProjectInfo")
     settings.set("maps", projectDetails.maps, "recentProjectInfo")
+
+    loaders.loadMetadataDetails(projectDetails)
 end
 
 ---A helper function to load a campaign into loenn pm
@@ -119,12 +122,12 @@ function loaders.newCampaign(campaignLocation, projectDetails)
             message))
     end
 end
-
----Clears loenn PM's metadata cache. Should be called whenever a new map is loaded
+loaders.cache = cacheLib.getCacheArena()
+---Clears loenn PM's metadata caches. Should be called whenever a new map is loaded
 function loaders.clearMetadataCache()
     tilesetHandler.clearTilesetCache()
     metadataHandler.clearMetadata()
-    loaders.cacheValid = false
+    loaders.cache:reset()
 end
 
 ---Errors if the state is invalid, otherwise does nothing
@@ -143,22 +146,26 @@ function loaders.loadMetadataDetails(projectDetails)
     logging.info("loading metadata")
     -- read the map metadata
     loaders.assertStateValid(projectDetails)
-    local mapData = state.side
-    local foregroundTilesXml = (mapData.meta and mapData.meta.ForegroundTiles)
-    local backgroundTilesXml = (mapData.meta and mapData.meta.BackgroundTiles)
-    local animatedTilesXml = (mapData.meta and mapData.meta.AnimatedTiles)
-    --process xmls
-    local foregroundTilestring = p_utils.getXmlString(foregroundTilesXml, projectDetails, "xmls/ForegroundTiles.xml")
-    local backgroundTilestring = p_utils.getXmlString(backgroundTilesXml, projectDetails, "xmls/BackgroundTiles.xml")
-    tilesetHandler.processTilesetXml(foregroundTilestring, true, projectDetails)
-    tilesetHandler.processTilesetXml(backgroundTilestring, false, projectDetails)
-    --set settings correctly
-    settings.set("foregroundTilesXml", foregroundTilesXml, "recentProjectInfo")
-    settings.set("backgroundTilesXml", backgroundTilesXml, "recentProjectInfo")
-    settings.set("animatedTilesXml", animatedTilesXml, "recentProjectInfo")
-    --read meta.yaml
-    metadataHandler.readMetadata(projectDetails)
-    loaders.cacheValid = true
+    loaders.cache:initCached("tiles", function ()
+        local mapData = state.side
+        local foregroundTilesXml = (mapData.meta and mapData.meta.ForegroundTiles)
+        local backgroundTilesXml = (mapData.meta and mapData.meta.BackgroundTiles)
+        local animatedTilesXml = (mapData.meta and mapData.meta.AnimatedTiles)
+        --process xmls
+        local foregroundTilestring = p_utils.getXmlString(foregroundTilesXml, projectDetails, "xmls/ForegroundTiles.xml")
+        local backgroundTilestring = p_utils.getXmlString(backgroundTilesXml, projectDetails, "xmls/BackgroundTiles.xml")
+        tilesetHandler.processTilesetXml(foregroundTilestring, true, projectDetails)
+        tilesetHandler.processTilesetXml(backgroundTilestring, false, projectDetails)
+        --set settings correctly
+        settings.set("foregroundTilesXml", foregroundTilesXml, "recentProjectInfo")
+        settings.set("backgroundTilesXml", backgroundTilesXml, "recentProjectInfo")
+        settings.set("animatedTilesXml", animatedTilesXml, "recentProjectInfo")
+    end)
+    loaders.cache:initCached("metadata", function ()
+        --read meta.yaml
+        metadataHandler.readMetadata(projectDetails)
+    end)
+    
 end
 
 return loaders

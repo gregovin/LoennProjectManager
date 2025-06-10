@@ -57,9 +57,7 @@ function script.prerun()
     local projectDetails = pUtils.getProjectDetails()
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
         projectLoader.assertStateValid(projectDetails)
-        if not projectLoader.cacheValid then
-            projectLoader.loadMetadataDetails(projectDetails)
-        end
+        projectLoader.cache:get("metadata")
         atlas = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Atlas" })
         atlas = atlas or fileSystem.joinpath("Endscreens", projectDetails.username, projectDetails.campaign)
         local l = metadataHandler.getNestedValueOrDefault({ "CompleteScreen", "Layers" })
