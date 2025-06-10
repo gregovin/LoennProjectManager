@@ -24,6 +24,7 @@ if maxLonnVersion > currentLonnVersion and currentLonnVersion >= minLoennVersion
     safeAddImporter("importAdvancedBgTileset")
     safeAddImporter("deleteFgTileset")
     safeAddImporter("deleteBgTileset")
+    safeAddImporter("reskinEntity")
     safeAddImporter("resyncOpenProject")
     safeAddImporter("editFgTileset")
     safeAddImporter("editBgTileset")

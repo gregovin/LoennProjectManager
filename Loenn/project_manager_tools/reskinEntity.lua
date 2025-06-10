@@ -16,8 +16,9 @@ local script = {
     name = "ReskinEntity",
     displayName = "Reskin Entity",
     tooltip = "Reskin a reskinnable entity",
-    paramaters = {
-        entity = "Jump Through",
+    layer = "other",
+    parameters = {
+        entity="Jump Through",
         edit=false
     },
     tooltips = {
@@ -28,9 +29,10 @@ local script = {
         entity = {
             fieldType = "string",
             options = {
+                "Jump Through"
             },
             editable=false
-        }
+        },
     },
     nextScript = {
         name="ReskinEntity2",
@@ -62,10 +64,8 @@ end
 
 function script.prerun()
     if #reskinners==0 then
+        script.fieldInformation.entity.options={}
         init()
-        for _,v in pairs(reskinners) do
-            table.insert(script.fieldInformation.entity.options,v.name)            
-        end
     end
 end
 
@@ -117,7 +117,7 @@ function script.run(args)
                     displayName = "Edit Reskin",
                     tooltip = "Edit the framedata for a specific reskin",
                     verb = "accept",
-                    paramaters = {files = {}},
+                    parameters = {files = {}},
                     tooltips = {files = "the files to use"},
                     fieldInformation={files = {
                         fieldType = "loennProjectManager.filePathList",
@@ -128,7 +128,7 @@ function script.run(args)
                     local fs = pUtils.list_dir(tdir)
                     for _,v in ipairs(fs) do
                         if string.find(v,args.options,1,true) then
-                            table.insert(script.nextScript.nextScript.paramaters.files, fileSystem.joinpath(tdir,v))
+                            table.insert(script.nextScript.nextScript.parameters.files, fileSystem.joinpath(tdir,v))
                         end
                     end
                     script.nextScript.nextScript.bn = args.options
@@ -159,7 +159,7 @@ function script.run(args)
                 local fs = pUtils.list_dir(tdir)
                 for _,v in ipairs(fs) do
                     if string.find(v,bns[1],1,true) then
-                        table.insert(script.nextScript.nextScript.paramaters.files, fileSystem.joinpath(tdir,v))
+                        table.insert(script.nextScript.nextScript.parameters.files, fileSystem.joinpath(tdir,v))
                     end
                 end
                 function script.nextScript.run(args)
@@ -224,7 +224,7 @@ function script.run(args)
                     displayName = "Edit ".. args.entity.. " Reskin",
                     tooltip = "Edit the image for a specific reskin",
                     verb = "accept",
-                    paramaters = {},
+                    parameters = {},
                     tooltips = {file = "the files to use"},
                     fieldInformation={file = {
                         fieldType = "loennProjectManager.filePath",
@@ -232,10 +232,10 @@ function script.run(args)
                     }}
                 }
                 function script.nextScript.run(args)
-                    script.nextScript.nextScript.paramaters.file=fileSystem.joinpath(tdir,args.options)
+                    script.nextScript.nextScript.parameters.file=fileSystem.joinpath(tdir,args.options)
                 end
                 function script.nextScript.nextScript.run(args)
-                    fileSystem.rename(args.file,script.nextScript.nextScript.paramaters.file)
+                    fileSystem.rename(args.file,script.nextScript.nextScript.parameters.file)
                 end
             elseif args.edit and #skns==1 then
                 script.nextScript={
@@ -243,7 +243,7 @@ function script.run(args)
                     displayName="Edit "..args.entity.." Reskin",
                     tooltip="Edit the image for a specific reskin",
                     verb="accept",
-                    paramaters={file=fileSystem.joinpath(tdir,skns[1])},
+                    parameters={file=fileSystem.joinpath(tdir,skns[1])},
                     tooltips = {file = "the files to use"},
                     fieldInformation={file = {
                         fieldType = "loennProjectManager.filePath",
@@ -251,7 +251,7 @@ function script.run(args)
                     }}
                 }
                 function script.nextScript.run(args)
-                    fileSystem.rename(args.file,script.nextScript.paramaters.file)
+                    fileSystem.rename(args.file,script.nextScript.parameters.file)
                 end
             else
                 script.nextScript={
@@ -259,7 +259,7 @@ function script.run(args)
                     displayName="New "..args.entity.." reskin",
                     tooltip="Create a new reskin for the selected entity",
                     verb="create",
-                    paramaters = {
+                    parameters = {
                         file = "",
                         baseName=""
                     },
@@ -287,9 +287,9 @@ function script.run(args)
         end
     else
         if reskinners[args.entity].multifile then
-            script.nextScript.paramaters.files={}
+            script.nextScript.parameters.files={}
             for _,v in pairs(pUtils.list_dir(tdir)) do
-                table.insert(script.nextScript.paramaters.files, fileSystem.joinpath(tdir,v))
+                table.insert(script.nextScript.parameters.files, fileSystem.joinpath(tdir,v))
             end
             script.nextScript.tooltips.files="The files to use for this reskin"
             script.nextScript.fieldInformation.files={
@@ -313,7 +313,7 @@ function script.run(args)
             end
         else
             local ls = pUtils.list_dir(tdir)
-            script.nextScript.paramaters.file=(ls[1] and fileSystem.joinpath(tdir,ls[1])) or ""
+            script.nextScript.parameters.file=(ls[1] and fileSystem.joinpath(tdir,ls[1])) or ""
             script.nextScript.tooltips.file="The file to use for this skin"
             script.nextScript.fieldInformation.file={
                 fieldType="loennProjectManager.nullableFilePath",
@@ -324,11 +324,11 @@ function script.run(args)
                     
                 end
                 if args2.file=="" then
-                    if script.nextScript.paramaters.file ~="" then fileSystem.remove(script.nextScript.paramaters.file) end 
+                    if script.nextScript.parameters.file ~="" then fileSystem.remove(script.nextScript.parameters.file) end 
                     apl(nil,projectDetails)
                 else
                     fileSystem.rename(args2.file,fileSystem.joinpath(ts,reskinners[args.entity].effects_entity..".png"))
-                    if script.nextScript.paramaters.file ~="" then fileSystem.remove(script.nextScript.paramaters.file) end 
+                    if script.nextScript.parameters.file ~="" then fileSystem.remove(script.nextScript.parameters.file) end 
                     fileSystem.rename(fileSystem.joinpath(ts,reskinners[args.entity].effects_entity..".png"),
                         fileSystem.joinpath(tdir,reskinners[args.entity].effects_entity..".png"))
                     apl(fileSystem.joinpath(tdir,reskinners[args.entity].effects_entity..".png"),projectDetails)
