@@ -79,7 +79,7 @@ function script.prerun()
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
         projectLoader.assertStateValid(projectDetails)
         --if the project is sane, load the cache and setup the options from it
-        projectLoader.cache:get("tiles")
+        projectLoader.cache:get("tilesBG")
         script.fieldInformation.template.options = tilesetHandler.sortedTilesetOpts(tilesetHandler.getTemplates(false))
         local ignoreOptions = tilesetHandler.sortedTilesetOpts(tilesetHandler.getTilesets(false))
         table.insert(ignoreOptions, { "All", "*" })

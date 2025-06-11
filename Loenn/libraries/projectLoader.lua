@@ -146,19 +146,25 @@ function loaders.loadMetadataDetails(projectDetails)
     logging.info("loading metadata")
     -- read the map metadata
     loaders.assertStateValid(projectDetails)
-    loaders.cache:initCached("tiles", function ()
+    loaders.cache:initCached("tilesFG", function ()
         local mapData = state.side
         local foregroundTilesXml = (mapData.meta and mapData.meta.ForegroundTiles)
-        local backgroundTilesXml = (mapData.meta and mapData.meta.BackgroundTiles)
-        local animatedTilesXml = (mapData.meta and mapData.meta.AnimatedTiles)
-        --process xmls
         local foregroundTilestring = p_utils.getXmlString(foregroundTilesXml, projectDetails, "xmls/ForegroundTiles.xml")
-        local backgroundTilestring = p_utils.getXmlString(backgroundTilesXml, projectDetails, "xmls/BackgroundTiles.xml")
         tilesetHandler.processTilesetXml(foregroundTilestring, true, projectDetails)
+        settings.set("foregroundTilesXml", foregroundTilesXml, "recentProjectInfo")
+    end)
+    loaders.cache:initCached("tilesBG", function ()
+        local mapData = state.side
+        local backgroundTilesXml = (mapData.meta and mapData.meta.BackgroundTiles)
+        --process xml
+        local backgroundTilestring = p_utils.getXmlString(backgroundTilesXml, projectDetails, "xmls/BackgroundTiles.xml")
         tilesetHandler.processTilesetXml(backgroundTilestring, false, projectDetails)
         --set settings correctly
-        settings.set("foregroundTilesXml", foregroundTilesXml, "recentProjectInfo")
         settings.set("backgroundTilesXml", backgroundTilesXml, "recentProjectInfo")
+    end)
+    loaders.cache:initCached("animTiles", function ()
+        local mapData = state.side
+        local animatedTilesXml = (mapData.meta and mapData.meta.AnimatedTiles)
         settings.set("animatedTilesXml", animatedTilesXml, "recentProjectInfo")
     end)
     loaders.cache:initCached("metadata", function ()

@@ -78,7 +78,7 @@ function script.prerun()
     local projectDetails = pUtils.getProjectDetails()
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
         projectLoader.assertStateValid(projectDetails)
-        projectLoader.cache:get("tiles")
+        projectLoader.cache:get("tilesFG")
         script.fieldInformation.template.options = tilesetHandler.sortedTilesetOpts(tilesetHandler.getTemplates(true))
         local ignoreOptions = tilesetHandler.sortedTilesetOpts(tilesetHandler.getTilesets(true))
         table.insert(ignoreOptions, { "All", "*" })
