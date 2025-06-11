@@ -17,13 +17,18 @@ function cachelib.val._MT.__call(i)
     end
     return i._val
 end
+---@class cacheVal
+---@field _init any
+---@field reset fun() reset the cached value
+---@overload fun(): any get the underlying value
+
 ---Get a cached value. A cahced value will run the init function and return the result the first time it is called, on subsequent calls it will return a cahced value until it is reset.
 ---ie  `local cv = cachelib.getCacheVal(function (v) return do_expensive_thing end); print(cv()) --expensive thing is done; print(cv()) --uses cached value`
 ---@param init any
----@return table cacheVal
+---@return cacheVal cacheVal
 function cachelib.getCacheVal(init)
     local v = {_init = init}
-    return setmetatable(v, cachelib.val)
+    return setmetatable(v, cachelib.val._MT)
 end
 cachelib.arena._MT={__index={}}
 ---Initialize a cached arena value
@@ -48,9 +53,17 @@ function cachelib.arena._MT.__index:get(key)
     end
     return self._vals[key]
 end
+---@class cacheArena
+---@field _inits table
+---@field _vals table
+---@field _is_set table
+---@field reset fun(self: cacheArena) Reset every key in the arena
+---@field initCached fun(self: cacheArena, key: any, init: any)  Initialize a cached arena value
+---@field get fun(self: cacheArena, key: any): any get the cached value at key
+
 ---Return a cache arena. A cache arena has the property where each key is initialized individually, but all keys in the arena are reset by the same `reset` call
----@return table arena
+---@return cacheArena arena
 function cachelib.getCacheArena()
-    return setmetatable({_inits={},_vals={},_is_set={}}, cachelib.arena)
+    return setmetatable({_inits={},_vals={},_is_set={}}, cachelib.arena._MT)
 end
 return cachelib
