@@ -73,6 +73,8 @@ function handler.clearTilesetCache()
     handler.tpath =nil
     ids_used_fg={"\"","&","'","<",">","0"} --setup ids_used
     ids_used_bg={"\"","&","'","<",">","0"}
+    addSpecialChars(true)
+    addSpecialChars(false)
     curIdFg = 33
     curIdBg=33
 end
