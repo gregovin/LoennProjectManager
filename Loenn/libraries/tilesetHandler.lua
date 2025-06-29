@@ -240,16 +240,25 @@ function handler.processTilesetXml(xmlString,foreground,projectDetails)
 end
 
 local function generateTilesetId(foreground)
-    local ids_used = foreground and ids_used_fg or ids_used_bg
-    local curId = foreground and curIdFg or curIdBg
-    local out = utf8.char(curId)
-    while out == ids_used[#ids_used] do
-        curId += 1
-        table.remove(ids_used, #ids_used)
-        out = utf8.char(curId)
+    if foreground then
+        local out = utf8.char(curIdFg)
+        while out== ids_used_fg[#ids_used_fg] do
+            curIdFg+=1
+            table.remove(ids_used_fg,#ids_used_fg)
+            out =utf8.char(curIdFg)
+        end
+        curIdFg+=1
+        return out
+    else
+        local out = utf8.char(curIdBg)
+        while out== ids_used_bg[#ids_used_bg] do
+            curIdBg+=1
+            table.remove(ids_used_bg,#ids_used_bg)
+            out =utf8.char(curIdBg)
+        end
+        curIdBg+=1
+        return out
     end
-    curId += 1
-    return out
 end
 
 ---Adds a tileset to the tilesets.xml at target. Can only be called after tilesets are processed
