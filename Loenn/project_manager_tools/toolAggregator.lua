@@ -36,6 +36,7 @@ if maxLonnVersion > currentLonnVersion and currentLonnVersion >= minLoennVersion
     safeAddImporter("addSimpleEndscreen")
     safeAddImporter("simpleVignette")
     safeAddImporter("zipMod")
+    safeAddImporter("testScript")
 else
     safeAddImporter("versionNotif")
 end

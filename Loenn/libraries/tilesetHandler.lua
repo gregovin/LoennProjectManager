@@ -596,4 +596,68 @@ function handler.checkTileset(foreground, state, id)
     return false
 end
 
+---DO NOT RUN IN ANY ACTUAL MAP!!
+function handler.id_test()
+    ids_used_fg={"\"","&","'","<",">","0"} --setup ids_used
+    ids_used_bg={"\"","&","'","<",">","0"}
+    curIdFg = 33
+    curIdBg=33
+    addSpecialChars(true)
+    addSpecialChars(false)
+    -- generate 10 random used tilesets
+    for _=1,10,1 do
+        table.insert(ids_used_fg,string.char(math.random(32,126)))
+        table.insert(ids_used_bg,string.char(math.random(32,126)))
+    end
+    table.sort(ids_used_fg,function (a,b) return a>b end)
+    table.sort(ids_used_bg,function (a,b) return a>b end)
+    --remove any duplicates.
+    local idx=1
+    while idx < #ids_used_fg do
+        if ids_used_fg[idx] == ids_used_fg[idx+1] then
+            table.remove(ids_used_fg,idx)
+        else
+            idx +=1
+        end
+    end
+    idx =1
+    while idx < #ids_used_bg do
+        if ids_used_bg[idx] == ids_used_bg[idx+1] then
+            table.remove(ids_used_bg,idx)
+        else
+            idx +=1
+        end
+    end
+    --test foreground id generator up to 100 ids, keeping all of them
+    local gened = {}
+    local used_copy = table.shallowcopy(ids_used_fg)
+    for _=1,100,1 do
+        table.insert(gened,generateTilesetId(true))
+    end
+    local ddetect={}
+    for _,v in ipairs(used_copy) do
+        ddetect[v]=true
+    end
+    for _, v in ipairs(gened) do
+        if ddetect[v] then
+            error("Test failed, found duplicate id for foreground generation")
+        end
+        ddetect[v]=true
+    end
+    gened ={}
+    ddetect={}
+    used_copy = table.shallowcopy(ids_used_bg)
+    for _=1,100,1 do
+        table.insert(gened,generateTilesetId(false))
+    end
+    for _,v in ipairs(used_copy) do
+        ddetect[v]=true
+    end
+    for _, v in ipairs(gened) do
+        if ddetect[v] then
+            error("Test failed, found duplicate id for background generation")
+        end
+        ddetect[v]=true
+    end
+end
 return handler
