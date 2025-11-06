@@ -40,8 +40,8 @@ handler.bgXml = nil
 ---@type string?
 handler.tpath = nil
 ---@type string[]
-local ids_used_fg={"\"","&","'","<",">","0"} -- these are probably all a bad idea to use. id 0 is air, the rest are xml special chars
-local ids_used_bg={"\"","&","'","<",">","0"}
+local ids_used_fg={"\"","&","'","<",">","0",",","*"} -- these are probably all a bad idea to use. id 0 is air, `,` and `*` are special for ignores, the rest are xml special chars
+local ids_used_bg={"\"","&","'","<",">","0",",","*"}
 ---@type integer
 local curIdFg=33 --ascii 33 is !
 local curIdBg=33
@@ -71,8 +71,8 @@ function handler.clearTilesetCache()
     settings.set("backgroundTilesXml",nil,"recentProjectInfo")
     settings.set("animatedTilesets",nil,"recentProjectInfo")
     handler.tpath =nil
-    ids_used_fg={"\"","&","'","<",">","0"} --setup ids_used
-    ids_used_bg={"\"","&","'","<",">","0"}
+    ids_used_fg={"\"","&","'","<",">","0",",","*"} --setup ids_used
+    ids_used_bg={"\"","&","'","<",">","0",",","*"}
     curIdFg = 33
     curIdBg=33
 end
@@ -398,16 +398,11 @@ function handler.prepareTilesetPath(projectDetails)
 end
 
 ---Move or copy a tileset
----@param copyFile boolean weather to copy or move the item
----@param tilesetFile string the path to the file to move or copy
+---@param tilesetFile string the path to the file to copy
 ---@param target string the location the file should be moved or copied to
-function handler.mvOrCPtileset(copyFile, tilesetFile, target)
+function handler.cpTileset(tilesetFile, target)
     local success, message
-    if copyFile then
-        success, message = fileSystem.copy(tilesetFile, target)
-    else
-        success, message = fileSystem.rename(tilesetFile, target)
-    end
+    success, message = fileSystem.copy(tilesetFile, target)
     return success, message
 end
 
