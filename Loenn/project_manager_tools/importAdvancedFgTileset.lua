@@ -24,7 +24,6 @@ local script = {
     parameters = {
         tilesetFile = "",
         name = "",
-        copyFile = false,
         sound = 0,
         ignores = {},
         template = "z",
@@ -34,7 +33,6 @@ local script = {
     tooltips = {
         tilesetFile = "The png file for your tileset",
         name = "The name you want your tileset to be displayed under in loenn",
-        copyFile = "By default, the file will be moved from its current location. If checked, it will be coppied instead",
         sound = "The sound to play when this tile is stepped on",
         ignores =
         "Which tilesets this tile should ignore. Tilesets selected will be treated as air when drawing this tileset",
@@ -48,7 +46,6 @@ local script = {
             fieldType = "loennProjectManager.filePath",
             extension = "png"
         },
-        copyFile = { fieldType = "boolean" },
         name = {
             fieldType = "loennProjectManager.xmlAttribute"
         },
@@ -141,7 +138,7 @@ function script.run(args)
     args.name = (#args.name > 0 and args.name) or preferedDefaultName
     path = fileSystem.convertToUnixPath(fileSystem.joinpath(path, pName))
     local fileOp = function()
-        local success, message = tilesetHandler.mvOrCPtileset(args.copyFile, args.tilesetFile,
+        local success, message = tilesetHandler.cpTileset(args.tilesetFile,
             fileSystem.joinpath(tilesetDir, tilesetName))
         if not success then logging.warning(message) end
         local adj = args.copyFile and "copy" or "move"
@@ -168,24 +165,14 @@ function script.run(args)
     end
     local revFileOp = function()
         local success, message
-        if args.copyFile then
-            success, message = fileSystem.remove(fileSystem.joinpath(tilesetDir, tilesetName))
-        else
-            success, message = fileSystem.rename(fileSystem.joinpath(tilesetDir, tilesetName), args.tilesetFile)
-        end
+        success, message = fileSystem.remove(fileSystem.joinpath(tilesetDir, tilesetName))
         if not success then
-            local verb
-            if args.copyFile then
-                verb = "copy"
-            else
-                verb = "move"
-            end
-            logging.warning(string.format("failed to undo %s due to the following error: %s", verb, message))
+            logging.warning(string.format("failed to undo copy due to the following error: %s", message))
             return false, "failed to remove tileset file due to filesystem error"
         end
         return true
     end
-    local snap1 = fallibleSnapshot.create("Move or Copy", { success = true }, revFileOp, fileOp)
+    local snap1 = fallibleSnapshot.create("Copy", { success = true }, revFileOp, fileOp)
     local snap2 = fallibleSnapshot.create("Add Tileset", { success = true }, remTileset, addTileset)
     local success, message = fileOp()
     if not success then
