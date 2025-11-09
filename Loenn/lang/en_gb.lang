@@ -18,3 +18,6 @@ ui.metadata_screen_window.form.remove=Remove
 ui.metadata_screen_window.form.update=Update
 ui.metadata_screen_window.form.move_up=Move Up
 ui.metadata_screen_window.form.move_down=Move Down
+
+ui.notifications.loennProjectManager.looseBin=Package loose bin?
+ui.button.LoennProjectManager.looseBinSanRemindMeLater=Remind me later
