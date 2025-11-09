@@ -19,5 +19,5 @@ ui.metadata_screen_window.form.update=Update
 ui.metadata_screen_window.form.move_up=Move Up
 ui.metadata_screen_window.form.move_down=Move Down
 
-ui.notifications.loennProjectManager.looseBin=Loose Project Found. Package?
+ui.notifications.loennProjectManager.looseBin=Loose bin detected. Would you like to package it?
 ui.button.LoennProjectManager.looseBinSanRemindMeLater=Remind me later
