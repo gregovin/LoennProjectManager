@@ -31,3 +31,5 @@ function sanitizer.beforeSave(filename, state)
         return
     end
 end
+
+return sanitizer
