@@ -14,7 +14,7 @@ local sanitizer = {
 -- Disable for specific filenames, should not be persisted
 sanitizer.disableEventFor = {}
 
-function sanitizer.beforeSave(filename, state)
+function sanitizer.afterSave(filename)
     local start = string.find(filename, modsDir, 1, true)
     if not start or start ~= 1 or fileSystem.fileExtension(filename) ~= "bin" then
         return false
