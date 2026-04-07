@@ -73,8 +73,8 @@ local prescript = {
 
 function prescript.prerun()
     projectDetails = pUtils.getProjectDetails()
-    projectLoader.assertStateValid(projectDetails)
     if projectDetails.name and projectDetails.username and projectDetails.campaign and projectDetails.map then
+        projectLoader.assertStateValid(projectDetails)
         if not projectLoader.cacheValid then
             projectLoader.loadMetadataDetails(projectDetails)
         end
