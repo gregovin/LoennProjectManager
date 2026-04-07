@@ -108,7 +108,7 @@ function tool.useScript(script, contextTable)
     if script.prerun then
         local success, message = pcall(script.prerun)
         if not success then
-            logging.warning(string.format("Failed to ititialize script!"))
+            logging.warning(string.format("Failed to initialize script!"))
             logging.warning(debug.traceback(message))
             notifications.notify(message, 10)
             return
